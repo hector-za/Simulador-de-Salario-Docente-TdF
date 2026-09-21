@@ -1,0 +1,194 @@
+/* Paleta y tipografía compartidas con el simulador, para que todo el sitio
+   se sienta parte de un mismo conjunto. */
+:root {
+  --navy-900: #071b2e;
+  --navy-800: #0b2c48;
+  --navy-700: #123a5c;
+  --navy-600: #1b4d76;
+  --gold: #c9982e;
+  --gold-light: #e6c878;
+  --paper: #fbfaf5;
+  --ink: #1c2b36;
+  --ink-soft: #4d5c66;
+  --green: #2f6b4f;
+  --red: #9c3b3b;
+  --radius: 14px;
+  --shadow-lg: 0 24px 60px -20px rgba(4, 15, 26, 0.55);
+  --shadow-sm: 0 2px 10px rgba(4, 15, 26, 0.18);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background:
+    radial-gradient(1100px 600px at 85% -10%, rgba(201, 152, 46, 0.14), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(27, 77, 118, 0.35), transparent 55%),
+    linear-gradient(180deg, var(--navy-900), var(--navy-800) 45%, var(--navy-900));
+  color: var(--paper);
+  font-family: "Roboto", system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+a { color: var(--gold-light); }
+
+.contenedor {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 64px 20px;
+}
+
+.tarjeta {
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--navy-700);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 32px;
+}
+
+.titulo-principal {
+  font-weight: 900;
+  color: var(--gold-light);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.subtitulo {
+  text-align: center;
+  color: #cfe0f0;
+  margin-bottom: 40px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.campo label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.campo input {
+  padding: 10px 12px;
+  border: 1px solid #c7d1e6;
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.boton {
+  display: inline-block;
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #2f63b3, #163f85 60%, #123765);
+  color: var(--gold-light);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+}
+
+.boton:hover { filter: brightness(1.08); }
+
+.boton-secundario {
+  background: none;
+  border: 1px solid var(--navy-700);
+  color: var(--navy-700);
+}
+
+.mensaje-error {
+  background: #fbeaea;
+  border: 1px solid var(--red);
+  color: var(--red);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.mensaje-ok {
+  background: #eaf6ee;
+  border: 1px solid var(--green);
+  color: var(--green);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.precio {
+  text-align: center;
+  font-size: 40px;
+  font-weight: 900;
+  color: var(--navy-800);
+  margin: 8px 0 4px;
+}
+
+.precio span {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.lista-beneficios {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 28px;
+}
+
+.lista-beneficios li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  color: var(--ink);
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.tab {
+  padding: 10px 18px;
+  border-radius: 10px 10px 0 0;
+  background: #dde6f2;
+  color: var(--navy-800);
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.tab.activo {
+  background: var(--paper);
+}
+
+.barra-superior {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 20px 20px 0;
+  font-size: 14px;
+}
+
+.barra-superior a, .barra-superior button {
+  background: none;
+  border: none;
+  color: var(--gold-light);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  text-decoration: underline;
+}

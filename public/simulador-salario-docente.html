@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Salario Docente · Tierra del Fuego</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;0,900;1,400&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Acá se definen los "colores y medidas de referencia" que se usan en todo el diseño,
+     para no tener que repetir el mismo código de color en cada regla. */
+  :root{
+    --navy-900:#071b2e;
+    --navy-800:#0b2c48;
+    --navy-700:#123a5c;
+    --navy-600:#1b4d76;
+    --gold:#c9982e;
+    --gold-light:#e6c878;
+    --paper:#fbfaf5;
+    --paper-line:#e4ded0;
+    --ink:#1c2b36;
+    --ink-soft:#4d5c66;
+    --green:#2f6b4f;
+    --red:#9c3b3b;
+    --radius:14px;
+    --shadow-lg:0 24px 60px -20px rgba(4,15,26,0.55);
+    --shadow-sm:0 2px 10px rgba(4,15,26,0.18);
+  }
+  /* Hace que el ancho/alto de cada elemento incluya su borde y relleno (más fácil de calcular). */
+  *{box-sizing:border-box;}
+  /* Saca los márgenes por defecto que pone el navegador en toda la página. */
+  html,body{margin:0;padding:0;}
+  /* Fondo de toda la página: un degradado oscuro (azul noche), con la tipografía general del sitio. */
+  body{
+    background:
+      radial-gradient(1100px 600px at 85% -10%, rgba(201,152,46,0.14), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(27,77,118,0.35), transparent 55%),
+      linear-gradient(180deg,var(--navy-900),var(--navy-800) 45%, var(--navy-900));
+    color:var(--ink);
+    font-family:"Roboto",system-ui,sans-serif;
+    min-height:100vh;
+    padding:32px 0 64px;
+  }
+  /* Color del texto cuando el usuario lo selecciona (lo marca) con el mouse. */
+  ::selection{background:var(--gold-light);color:var(--navy-900);}
+
+  /* ---------- Encabezado (el cartel azul de arriba de todo) ---------- */
+  /* Caja que contiene todo el encabezado, centrada y con un ancho máximo. */
+  .masthead{
+    max-width:1180px;
+    margin:0 auto 26px;
+    padding:0 20px;
+  }
+  /* Fila de arriba: logo + franja azul, uno al lado del otro, con las esquinas redondeadas
+     solamente en el borde exterior de todo el conjunto. */
+  .masthead-row{
+    display:flex;
+    align-items:stretch;
+    gap:12px;
+  }
+  /* El recuadro blanco donde va el logo, ahora ocupa toda la altura (franja azul + cajitas de abajo). */
+  .masthead-logo{
+    flex:none;
+    width:78px;
+    background:#fff;
+    border-radius:16px;
+    box-shadow:var(--shadow-sm);
+    display:flex;align-items:center;justify-content:center;
+    padding:8px;
+  }
+  /* La imagen del logo dentro de ese recuadro: se ajusta al tamaño de la caja. */
+  .masthead-logo img{
+    width:100%;height:100%;object-fit:contain;
+  }
+  /* Columna a la derecha del logo: arriba la franja azul, abajo las tres cajitas, ambas
+     empezando exactamente en el mismo borde izquierdo. */
+  .masthead-right{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  /* La franja azul con el título: redondeada como una placa, con un brillo suave arriba (efecto vidrio). */
+  .masthead-main{
+    position:relative;
+    overflow:hidden;
+    border-radius:16px;
+    background:linear-gradient(180deg,#2f63b3,#163f85 60%,#123765);
+    box-shadow:var(--shadow-sm);
+    padding:14px 26px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  /* El brillo diagonal (como un reflejo de vidrio) sobre la franja azul. */
+  .masthead-main::before{
+    content:"";
+    position:absolute;inset:0;
+    background:linear-gradient(160deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.06) 30%, transparent 55%);
+    pointer-events:none;
+  }
+  /* El texto del título "Simulador de Salario Docente - 2026" (letra dorada, centrada). */
+  .masthead-main h1{
+    position:relative;
+    font-family:"Roboto",sans-serif;
+    font-weight:900;
+    font-size:clamp(20px,3vw,28px);
+    margin:0;
+    color:var(--gold-light);
+    text-align:center;
+    letter-spacing:-0.01em;
+  }
+  /* Fila de abajo: tres cajitas separadas (con espacio entre ellas), cada una redondeada como una
+     píldora, con un brillo suave arriba (mismo estilo que la franja azul de arriba). */
+  .masthead-info{
+    display:flex;
+    gap:10px;
+  }
+  /* Cada uno de esos tres recuadros de texto. */
+  .masthead-info .info-box{
+    position:relative;
+    overflow:hidden;
+    padding:9px 16px;
+    font-size:12px;
+    font-weight:600;
+    color:#2b3a55;
+    text-align:center;
+    border:1px solid #c7d1e6;
+    border-radius:14px;
+    background:linear-gradient(180deg,#ffffff,#e3e9f5);
+    box-shadow:var(--shadow-sm);
+    display:flex;align-items:center;justify-content:center;
+  }
+  /* El brillo diagonal sobre cada cajita, para que combine con el estilo de la franja azul. */
+  .masthead-info .info-box::before{
+    content:"";
+    position:absolute;inset:0;
+    background:linear-gradient(160deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.15) 35%, transparent 60%);
+    pointer-events:none;
+  }
+  .masthead-info .info-box > *{position:relative;}
+  /* El primer recuadro (más largo) ocupa más espacio que los otros dos. */
+  .masthead-info .info-box:first-child{flex:2 1 auto;}
+  .masthead-info .info-box:not(:first-child){flex:1 1 auto;}
+  /* El texto resaltado en rojo dentro de esos recuadros (ej: el número de decreto y la fecha). */
+  .masthead-info .info-box .hl{color:#c0392b;}
+  /* Refuerza el espacio antes del guion (después del decreto) y después de "del" (antes de la fecha). */
+  .masthead-info .info-box .hl:first-of-type{margin-right:3px;}
+  .masthead-info .info-box .hl:last-of-type{margin-left:3px;}
+  /* En pantallas angostas (celular): el logo y el título se apilan, y las tres cajitas también. */
+  @media (max-width:760px){
+    .masthead-row{flex-direction:column;}
+    .masthead-logo{width:100%;height:70px;padding:8px;}
+    .masthead-info{flex-direction:column;}
+  }
+
+  /* ---------- Distribución general (formulario a la izquierda, recibo a la derecha) ---------- */
+  .stage{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 20px;
+    display:grid;
+    grid-template-columns:minmax(320px,400px) minmax(0,1fr);
+    gap:26px;
+    align-items:start;
+  }
+  /* En pantallas angostas: el formulario y el recibo pasan a apilarse en una sola columna. */
+  @media (max-width:920px){
+    .stage{grid-template-columns:1fr;}
+  }
+
+  /* ---------- Panel del formulario (el recuadro de la izquierda) ---------- */
+  .panel{
+    background:#eaf1fb;
+    border:1px solid var(--navy-700);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow-lg);
+    padding:26px 24px 28px;
+    position:sticky;
+    top:20px;
+  }
+  /* En pantallas angostas, el panel ya no queda "pegado" al hacer scroll. */
+  @media (max-width:920px){ .panel{position:static;} }
+
+  /* Título grande dentro del panel (actualmente sin uso, queda por si se necesita más adelante). */
+  .panel h2{
+    font-family:"Roboto",sans-serif;
+    font-size:19px;
+    font-weight:600;
+    margin:0 0 4px;
+    color:var(--navy-800);
+  }
+  /* La línea "Para realizar la simulación, complete el siguiente formulario." con la flechita. */
+  .panel .instruction{
+    display:flex;align-items:flex-start;gap:8px;
+    font-size:14px;font-weight:600;color:var(--navy-800);
+    margin:0 0 4px;line-height:1.4;
+  }
+  /* La flechita dorada (➤) que va antes de esa línea de instrucción. */
+  .panel .arrow-icon{
+    flex:none;color:var(--gold);font-size:15px;line-height:1.5;
+  }
+  /* El texto chiquito en cursiva "Tecla (Tab ⇆) desplaza de un campo a otro", con una línea debajo. */
+  .panel .tab-hint{
+    font-size:11px;color:var(--ink-soft);font-style:italic;
+    margin:0 0 14px 23px;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--paper-line);
+  }
+
+  /* El recuadro gris "Valor Índice vigente: ..." */
+  .indice-strip{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    margin-bottom:18px;
+    padding:6px 10px;
+    background:#fff;
+    border:1px solid #a9c2e8;
+    border-radius:8px;
+  }
+  /* El texto "Valor Índice vigente:" dentro de ese recuadro. */
+  .indice-strip .txt{font-size:11.5px;color:var(--ink-soft);}
+  /* El número del índice, en letra tipo "máquina de escribir" (monoespaciada) y más oscuro. */
+  .indice-strip .txt b{
+    font-family:"Roboto Mono",monospace;
+    color:var(--navy-800);
+    font-size:12px;
+  }
+  /* El campo numérico (oculto casi siempre) donde vive el valor real del índice. */
+  .indice-strip input[type="number"]{
+    width:100px;padding:4px 7px;font-size:12px;
+  }
+  /* Estilo genérico para botones pequeños, cuadrados, con un solo ícono adentro (actualmente sin uso). */
+  .icon-btn{
+    flex:none;width:22px;height:22px;
+    border:1px solid #cbd0d3;background:#fff;border-radius:6px;
+    color:var(--navy-700);cursor:pointer;
+    font-size:12px;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+    padding:0;
+  }
+  .icon-btn:hover{background:#eef2f4;}
+
+  /* Cada "campo" del formulario (una etiqueta + su casillero), con separación entre uno y otro. */
+  .field{margin-bottom:15px;}
+  /* El texto de la etiqueta de cada campo (ej: "Nivel / Modalidad", "Cargo", etc.). */
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.02em;
+    color:var(--navy-700);
+    margin-bottom:5px;
+  }
+  /* Texto de ayuda chiquito, debajo de un campo (actualmente sin uso). */
+  .field .hint{
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-top:4px;
+    line-height:1.4;
+  }
+  /* Estilo general de todos los combos (dropdowns) y campos de texto/número del formulario. */
+  select, input[type="number"], input[type="text"]{
+    width:100%;
+    font-family:"Roboto",sans-serif;
+    font-size:14px;
+    padding:9px 11px;
+    border:1px solid #a9c2e8;
+    border-radius:8px;
+    background:#fff;
+    color:var(--ink);
+    appearance:none;
+    -webkit-appearance:none;
+  }
+  /* Cómo se ve un campo cuando el usuario hace clic y lo deja "activo" (con un resplandor azul). */
+  select:focus, input:focus{
+    outline:none;
+    border-color:var(--navy-600);
+    box-shadow:0 0 0 3px rgba(27,77,118,0.18);
+  }
+  /* Cómo se ve un campo cuando está deshabilitado (más grisáceo). */
+  select:disabled, input:disabled{background:#f1f1ee;color:#9aa0a3;}
+  /* Caja que envuelve a los combos, para poder dibujarles la flechita de "desplegar" a la derecha. */
+  .select-wrap{position:relative;}
+  /* La flechita (dibujada con bordes, no es una imagen) que aparece a la derecha de cada combo. */
+  .select-wrap::after{
+    content:"";
+    position:absolute;right:12px;top:50%;
+    width:8px;height:8px;
+    border-right:2px solid var(--ink-soft);
+    border-bottom:2px solid var(--ink-soft);
+    transform:translateY(-65%) rotate(45deg);
+    pointer-events:none;
+  }
+  /* Fila de dos columnas iguales (actualmente sin uso directo, queda disponible). */
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  /* Fila de tres columnas iguales: se usa para Antigüedad / Zona / Días, uno al lado del otro. */
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  /* En pantallas muy angostas, esas tres columnas pasan a apilarse. */
+  @media (max-width:480px){ .row3{grid-template-columns:1fr;} }
+
+  /* Etiqueta de texto que va pegada arriba de un grupo de opciones (ej: "Bonificación por Ruralidad"). */
+  .field-label-inline{
+    display:block;font-size:12px;font-weight:600;letter-spacing:.02em;
+    color:var(--navy-700);margin-bottom:6px;
+  }
+  /* Fila que contiene las dos opciones "Agregar" / "Quitar", una al lado de la otra. */
+  .radio-row{display:flex;gap:18px;margin-bottom:4px;}
+  /* Cada opción individual (el círculo + su texto), del tipo "Agregar" o "Quitar". */
+  .radio-opt{
+    display:flex;align-items:center;gap:6px;
+    font-size:13.5px;color:var(--ink);cursor:pointer;user-select:none;
+  }
+  /* El círculo (radio button) en sí. */
+  .radio-opt input{width:16px;height:16px;accent-color:var(--navy-700);}
+
+  /* Lista de casilleros de Sindicato: se pueden tildar varios a la vez, en dos columnas. */
+  .check-list{
+    display:grid;grid-template-columns:1fr 1fr;
+    gap:4px 10px;
+    margin-top:2px;
+  }
+  .check-list label{
+    display:flex;align-items:center;gap:6px;
+    font-size:12.5px;color:var(--ink);cursor:pointer;user-select:none;
+  }
+  .check-list input{width:15px;height:15px;accent-color:var(--navy-700);flex:none;}
+
+  /* El recuadro con borde punteado "ADICIONALES" (Ruralidad + Asignación Hora Cátedra). */
+  fieldset{
+    border:1px dashed #a9c2e8;
+    border-radius:10px;
+    padding:13px 14px 15px;
+    margin:20px 0 0;
+  }
+  /* El título "ADICIONALES" que queda "mordiendo" el borde de arriba de ese recuadro. */
+  fieldset legend{
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--gold);
+    padding:0 6px;
+    background:#eaf1fb;
+  }
+  /* Estilo de una fila con casillero (checkbox) + texto (actualmente sin uso, quedó de una versión anterior). */
+  .check-row{
+    display:flex;align-items:center;gap:9px;
+    font-size:13.5px;color:var(--ink);
+    cursor:pointer;
+    user-select:none;
+  }
+  .check-row input{width:16px;height:16px;accent-color:var(--navy-700);}
+
+  /* El cartelito amarillo de aviso (ej: "Introduce cantidad de horas que deseas simular."). */
+  .badge-info{
+    margin-top:8px;
+    font-size:11.5px;
+    background:#fff6e2;
+    border:1px solid #ecdca6;
+    color:#7a5c14;
+    padding:7px 9px;
+    border-radius:7px;
+    line-height:1.4;
+  }
+
+  /* Separación para un buscador de texto (actualmente sin uso, se sacó el buscador de Cargo). */
+  .filter-input{margin-bottom:6px;}
+
+  /* ---------- Recibo (el recuadro de la derecha, con la liquidación) ---------- */
+  /* Caja que envuelve al recibo; le da una altura mínima y permite que se achique si hace falta. */
+  .receipt-shell{min-height:520px;min-width:0;}
+  /* El "papel" del recibo en sí: fondo blanco y un marco azul fino alrededor (como la planilla original). */
+  .receipt{
+    background:#ffffff;
+    border:1.5px solid var(--navy-700);
+    border-radius:6px;
+    box-shadow:var(--shadow-lg);
+    overflow:hidden;
+    position:relative;
+    padding:14px;
+  }
+
+  /* La fila de arriba, con el logo y el título "Remuneración Mensual", cada uno en su propia caja con borde. */
+  .r-head{
+    background:#ffffff;
+    color:var(--ink);
+    padding:0 0 10px;
+    display:flex;
+    align-items:stretch;
+    gap:0;
+  }
+  /* La cajita con borde que contiene el logo, pegada directamente a la caja del título (sin espacio entre las dos). */
+  .r-head .r-logo{
+    width:46px;height:46px;flex:none;
+    border:1px solid var(--navy-700);
+    border-radius:6px 0 0 6px;
+    padding:4px;
+  }
+  /* La caja con borde que contiene el título, ocupando el resto del ancho, pegada al logo. */
+  .r-head h3{
+    flex:1;
+    display:flex;align-items:center;justify-content:center;
+    font-family:"Roboto",sans-serif;
+    margin:0;font-size:17px;font-weight:700;color:#1a1a1a;
+    border:1px solid var(--navy-700);
+    border-left:none;
+    border-radius:0 6px 6px 0;
+    background:#fff;
+  }
+  /* La línea de texto simple debajo del título (sin caja ni fondo de color), con los datos institucionales. */
+  .r-subline{
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 16px;
+    padding:4px 2px 10px;
+    background:#fff;
+    font-size:11px;font-weight:600;color:#1a1a1a;
+  }
+
+  /* El recuadro con los datos de "Cargo" y "Nivel/Mod.", con borde azul fino y fondo blanco. */
+  .r-cargobox{
+    border:1px solid var(--navy-700);
+    border-radius:4px;
+    overflow:hidden;
+    margin-bottom:10px;
+  }
+  /* Cada uno de los dos renglones dentro de ese recuadro (uno para Cargo, otro para Nivel/Mod.). */
+  .r-cargobox .row{
+    display:flex;
+    border-bottom:1px solid var(--navy-700);
+  }
+  /* El último renglón no lleva línea divisoria abajo. */
+  .r-cargobox .row:last-child{border-bottom:none;}
+  /* La etiqueta ("Cargo" / "Nivel/Mod.") a la izquierda de cada renglón, sobre fondo blanco. */
+  .r-cargobox .lbl{
+    width:90px;flex:none;
+    padding:6px 10px;
+    font-size:11.5px;font-weight:700;
+    color:var(--ink);
+    background:#fff;
+    border-right:1px solid var(--navy-700);
+    display:flex;align-items:center;
+  }
+  /* El valor (el texto en sí) a la derecha de cada etiqueta. */
+  .r-cargobox .val{
+    padding:6px 10px;font-size:13px;font-weight:600;color:var(--ink);
+    display:flex;align-items:center;
+  }
+
+  /* Caja que envuelve la tabla de conceptos: permite hacer scroll de lado si la pantalla es angosta. */
+  .r-tablewrap{overflow-x:auto;border:1px solid var(--navy-700);border-radius:4px;}
+  /* La tabla en sí: ocupa todo el ancho disponible, con un ancho mínimo para que no se aplaste demasiado. */
+  table.r-table{
+    width:100%;border-collapse:collapse;font-size:12.5px;min-width:682px;background:#fff;
+  }
+  /* Estilo general de los títulos de columna (Cód., Descripción, Cat., etc.): letra negra, con bordes finos. */
+  .r-table thead th{
+    text-align:left;
+    font-size:11px;font-weight:700;
+    color:#1a1a1a;
+    padding:4px 8px;
+    border:1px solid var(--navy-700);
+    background:#fff;
+  }
+  /* La primera fila de títulos (donde dice "Concepto" y "Unidades", cada uno agrupando varias columnas). */
+  .r-table thead tr:first-child th{
+    text-align:center;
+  }
+  /* Los títulos y celdas de columnas numéricas se alinean a la derecha (más fácil de leer los montos). */
+  .r-table thead th.num, .r-table td.num{text-align:right;}
+  /* Estilo general de las celdas del cuerpo de la tabla (cada concepto de la liquidación). */
+  .r-table tbody td{
+    padding:5px 8px;
+    border-left:1px solid var(--navy-700);
+    border-right:1px solid var(--navy-700);
+    color:var(--ink);
+  }
+  /* Las filas del cuerpo se pintan alternadas (celeste / blanco), igual que en la planilla. */
+  .r-table tbody tr:nth-child(odd){background:#dbe8f7;}
+  .r-table tbody tr:nth-child(even){background:#ffffff;}
+  /* El monto de un concepto que suma (columna Remunerativo) se muestra en negrita. */
+  .r-table tbody tr.rem td.remcol{font-weight:600;}
+  /* El monto de un concepto No Remunerativo (columna aparte) se muestra en negrita y en un tono violeta,
+     para distinguirlo a simple vista de lo Remunerativo y de las Deducciones. */
+  .r-table tbody tr.norem td.noremcol{font-weight:600;color:#6a4fa0;}
+  /* El monto de un descuento (columna Deducciones) se muestra en negrita y en color rojo. */
+  .r-table tbody tr.ded td.dedcol{font-weight:600;color:var(--red);}
+  /* La columna del código de cada concepto (1, 11, 21, etc.), en letra tipo "máquina de escribir". */
+  .r-table td.cod{
+    font-family:"Roboto Mono",monospace;font-size:11px;color:var(--ink);
+  }
+  /* Cualquier celda que muestre un monto en pesos, en letra tipo "máquina de escribir" y sin cortar el signo $. */
+  .r-table td.amt{
+    font-family:"Roboto Mono",monospace;white-space:nowrap;
+  }
+  /* La fila de "TOTAL PARCIAL" al pie de la tabla. */
+  .r-table tfoot td{
+    padding:8px;
+    font-weight:700;
+    border:1px solid var(--navy-700);
+    background:#eef3fb;
+    font-family:"Roboto Mono",monospace;
+  }
+  /* El texto "TOTAL PARCIAL" en sí (no un monto), con la letra normal en vez de la de máquina de escribir. */
+  .r-table tfoot td.label{font-family:"Roboto",sans-serif;}
+  /* Fila que se mostraría si la tabla quedara sin ningún concepto para mostrar (caso raro). */
+  .r-empty-row td{
+    text-align:center;color:#adb3b6;font-style:italic;
+    font-family:"Roboto",sans-serif;
+    padding:14px 8px;
+  }
+
+  /* El recuadro final "TOTAL SALARIO DE BOLSILLO", con el monto grande en verde. */
+  .r-totals{
+    margin:10px 0 0;
+    padding:10px 14px;
+    background:#eef3fb;
+    border:1px solid var(--navy-700);
+    border-radius:4px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  /* El texto "Total Salario de Bolsillo" (la etiqueta, no el número). */
+  .r-totals .lbl{
+    font-family:"Roboto",sans-serif;
+    font-size:15px;font-weight:700;color:var(--navy-800);
+    text-transform:uppercase;letter-spacing:.02em;
+  }
+  /* El monto grande en sí (el número final que cobra el docente). */
+  .r-totals .amt{
+    font-family:"Roboto Mono",monospace;
+    font-size:24px;font-weight:600;color:var(--green);
+  }
+  /* Leyenda "Realizó: ..." al pie del recibo: letra chica, color tenue (como una marca de agua). */
+  .r-watermark{
+    text-align:left;
+    padding:6px 14px 4px;
+    font-size:10px;
+    color:#b8bfc7;
+  }
+
+  /* Cuadro de aclaraciones al pie del recibo (actualmente sin uso: se sacó porque ya está en el formulario). */
+  .r-foot{
+    margin:20px 0 0;
+    padding:14px 26px 22px;
+    background:#f4f1e6;
+    font-size:10.5px;
+    line-height:1.6;
+    color:#6b6350;
+  }
+  .r-foot b{color:#4d4738;}
+
+  /* Estilos para cuando el recibo está "vacío" (todavía no se eligió ningún cargo): todo se ve más atenuado. */
+  .r-cargobox.vacio .val{color:#9aa3ab;font-style:italic;}
+  .r-table.vacio tbody td{color:#adb3b6;}
+  .r-table td.placeholder, .r-table tfoot td.placeholder{color:#adb3b6;font-weight:400;}
+  .r-totals.vacio .amt{color:#adb3b6;}
+  .fila-vacia .cod{color:#c7ccce;}
+
+  /* El cuadro "Datos de cálculo" del panel izquierdo (las aclaraciones sobre qué incluye y qué no). */
+  .calc-note{
+    flex:1;
+    margin-top:0;
+    padding:10px 12px;
+    background:#dbe9fb;
+    border:1px solid #a9c2e8;
+    border-radius:8px;
+    font-size:10.5px;
+    line-height:1.6;
+    color:#1a2b45;
+  }
+  .calc-note b{color:#0b2c48;}
+  /* Las listas de "Deducciones" y "No incluye" dentro del cuadro de aclaraciones. */
+  .calc-note ul{margin:2px 0 4px;padding-left:16px;}
+  .calc-note li{margin-bottom:1px;}
+
+  /* Fila que junta el cuadro de aclaraciones y los botones, uno al lado del otro. */
+  .calc-row{
+    display:flex;
+    gap:10px;
+    align-items:stretch;
+    margin-top:16px;
+  }
+  /* Columna angosta con los botones, apilados verticalmente al lado del cuadro de aclaraciones. */
+  .actions{
+    display:flex;flex-direction:column;justify-content:center;gap:8px;
+    flex:none;width:96px;
+  }
+  /* Estilo general de los botones (fondo azul, como "IMPRIMIR" en la planilla). */
+  .btn{
+    font-family:"Roboto",sans-serif;
+    font-size:12px;font-weight:700;
+    padding:10px 8px;
+    border-radius:6px;
+    border:1px solid var(--navy-700);
+    background:linear-gradient(180deg,#2d63b0,#163f85);
+    color:#fff;
+    cursor:pointer;
+  }
+  /* Al pasar el mouse por arriba, el botón se aclara un poco. */
+  .btn:hover{background:linear-gradient(180deg,#3b73c2,#1d4fa1);}
+  /* El botón "Limpiar": en tono dorado, para diferenciarlo del botón principal. */
+  .btn.ghost{
+    background:linear-gradient(180deg,#e6c878,#c9982e);
+    color:var(--navy-900);
+    border-color:#a97e1f;
+  }
+  .btn.ghost:hover{background:linear-gradient(180deg,#eeda9c,#d4a53c);}
+
+  /* Estilos que se aplican SOLO al imprimir (o guardar como PDF): se oculta todo menos el recibo. */
+  @media print{
+    body{background:#fff;padding:0;}
+    .masthead,.panel,.actions{display:none !important;}
+    .stage{display:block;max-width:none;padding:0;}
+    .receipt{box-shadow:none;border-radius:0;}
+  }
+</style>
+</head>
+<body>
+<!-- ====== ENCABEZADO: el cartel azul de arriba con el logo, el título y los tres datos institucionales ====== -->
+<header class="masthead">
+  <!-- Fila general: el logo a la izquierda (ocupando toda la altura), y a la derecha,
+       apiladas, la franja azul del título y las tres cajitas de abajo. -->
+  <div class="masthead-row">
+    <div class="masthead-logo">
+      <!-- Logo de Héctor Ramón Zárate, guardado directamente como imagen dentro del código (no es un archivo aparte). -->
+      <img src="data:image/png;base64,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" alt="Logo H.R.Z. - Héctor Ramón Zárate">
+    </div>
+    <div class="masthead-right">
+      <!-- La franja azul con el título "Simulador de Salario Docente - 2026" (letra dorada). -->
+      <div class="masthead-main">
+        <h1>Simulador de Salario Docente - 2026</h1>
+      </div>
+      <!-- Fila de abajo: tres cajitas separadas, con un relieve suave, igual que en la planilla.
+           Empiezan justo donde empieza la franja azul (no debajo del logo). -->
+      <div class="masthead-info">
+        <div class="info-box">Escala Salarial s/<span class="hl" id="mastheadDecreto">Dto. 1059/2026</span> - Vigencia: a partir del <span class="hl" id="mastheadVigencia">01/05/2026</span></div>
+        <div class="info-box">Provincia de Tierra del Fuego</div>
+        <div class="info-box">Elaborado por hez@-TdF</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="stage">
+  <!-- ===================== FORMULARIO (columna izquierda) ===================== -->
+
+
+  <section class="panel">
+    <!-- Línea de instrucción con la flechita, y el texto de ayuda sobre la tecla Tab. -->
+    <div class="instruction">
+      <span class="arrow-icon">➤</span>
+      <span>Para realizar la simulación, complete el siguiente formulario.</span>
+    </div>
+    <p class="tab-hint">Tecla (Tab ⇆) desplaza de un campo a otro</p>
+
+    <!-- Combo de Período / Escala Salarial: cada opción trae su propio índice, decreto y vigencia
+         (ver la lista ESCALAS). Arranca elegida la más reciente, pero se puede volver a una vieja. -->
+    <div class="field">
+      <label for="escala">Período / Escala Salarial</label>
+      <div class="select-wrap"><select id="escala"></select></div>
+    </div>
+
+    <!-- Recuadro que muestra el índice salarial de la escala elegida (solo lectura). El campo numérico
+         real está oculto justo debajo; su valor se completa solo, según la escala seleccionada arriba. -->
+    <div class="indice-strip">
+      <span class="txt">Valor Índice vigente: <b id="indiceView"></b></span>
+    </div>
+    <input type="number" id="indice" step="0.001" style="display:none;">
+
+    <!-- Combo de Nivel / Modalidad: sus opciones se completan solas con JavaScript al abrir la página. -->
+    <div class="field">
+      <label for="nivel">Nivel / Modalidad</label>
+      <div class="select-wrap"><select id="nivel"></select></div>
+    </div>
+
+    <!-- Combo de Cargo: sus opciones dependen de qué Nivel se haya elegido arriba. -->
+    <div class="field">
+      <label for="cargo">Cargo</label>
+      <div class="select-wrap"><select id="cargo"></select></div>
+    </div>
+
+    <!-- Campo "Cantidad de horas cátedra": solo se muestra si el cargo elegido es de Hora Cátedra. -->
+    <div class="field" id="horasField" style="display:none;">
+      <label for="horas">Cantidad de horas cátedra</label>
+      <input type="number" id="horas" min="1" max="60" value="1">
+      <div id="horaBadge" class="badge-info">Introduce cantidad de horas que deseas simular.</div>
+    </div>
+
+    <!-- Fila con Antigüedad, Zona y Días, uno al lado del otro. -->
+    <div class="row3">
+      <div class="field">
+        <label for="antiguedad">Antigüedad</label>
+        <div class="select-wrap"><select id="antiguedad"></select></div>
+      </div>
+      <div class="field">
+        <label for="zona">Zona</label>
+        <div class="select-wrap"><select id="zona"></select></div>
+      </div>
+      <div class="field">
+        <label for="dias">Días</label>
+        <input type="number" id="dias" min="1" max="31" value="30">
+      </div>
+    </div>
+
+    <!-- Recuadro "Adicionales": Ruralidad, Puntaje Junta, Caja Complementaria y Sindicato.
+         La Asignación Hora Cátedra (412) ya no se elige a mano: se calcula sola para todos los
+         cargos (ver más abajo, en la función calcular()). -->
+    <fieldset>
+      <legend>Adicionales</legend>
+      <label class="field-label-inline">Bonificación por Ruralidad</label>
+      <div class="radio-row">
+        <label class="radio-opt"><input type="radio" name="ruralidad" id="ruralidadAgregar" value="1"> Agregar</label>
+        <label class="radio-opt"><input type="radio" name="ruralidad" id="ruralidadQuitar" value="0" checked> Quitar</label>
+      </div>
+
+      <label class="field-label-inline" style="margin-top:12px;">Puntaje Junta</label>
+      <div class="radio-row">
+        <label class="radio-opt"><input type="radio" name="puntajeJunta" id="puntajeJuntaAgregar" value="1"> Agregar</label>
+        <label class="radio-opt"><input type="radio" name="puntajeJunta" id="puntajeJuntaQuitar" value="0" checked> Quitar</label>
+      </div>
+
+      <label class="field-label-inline" style="margin-top:12px;">Adicional Remunerativo Antártida</label>
+      <div class="radio-row">
+        <label class="radio-opt"><input type="radio" name="antartida" id="antartidaAgregar" value="1"> Agregar</label>
+        <label class="radio-opt"><input type="radio" name="antartida" id="antartidaQuitar" value="0" checked> Quitar</label>
+      </div>
+
+      <label class="field-label-inline" style="margin-top:12px;">Caja Complementaria</label>
+      <div class="radio-row">
+        <label class="radio-opt"><input type="radio" name="cajaComplementaria" id="cajaComplementariaAgregar" value="1"> Agregar</label>
+        <label class="radio-opt"><input type="radio" name="cajaComplementaria" id="cajaComplementariaQuitar" value="0" checked> Quitar</label>
+      </div>
+
+      <div class="field" style="margin-top:12px;margin-bottom:0;">
+        <label class="field-label-inline">Sindicato(s)</label>
+        <!-- Se puede tildar más de uno: hay docentes afiliados a varios sindicatos a la vez.
+             Los casilleros se completan solos con JavaScript (ver SINDICATOS). -->
+        <div class="check-list" id="sindicatosCheckboxes"></div>
+      </div>
+    </fieldset>
+
+    <!-- Fila final: el cuadro de aclaraciones "Datos de cálculo" y, al lado, los botones de acción. -->
+    <div class="calc-row">
+      <div class="calc-note">
+        <b>Datos de cálculo:</b><br>
+        A) Se ajusta estrictamente a escala salarial y adicionales vigentes.<br>
+        B) Deducciones:
+        <ul>
+          <li>1) Aportes de Ley;</li>
+          <li>2) Seguro Obligatorio;</li>
+          <li>3) Caja Complementaria y;</li>
+          <li>4) Aportes a Sindicatos.</li>
+        </ul>
+        C) No incluye:
+        <ul>
+          <li>1) Seguros optativos y;</li>
+          <li>2) Salario Familiar.</li>
+        </ul>
+      </div>
+      <!-- Botones de acción, apilados al lado del cuadro de aclaraciones. -->
+      <div class="actions">
+        <button class="btn" id="btnPrint">Imprimir</button>
+        <button class="btn ghost" id="btnReset">Limpiar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== RECIBO (columna derecha) ===================== -->
+
+  <section class="receipt-shell">
+    <!-- Acá adentro, JavaScript va a "pintar" todo el recibo (se arma solo, con la función plantillaRecibo). -->
+    <div class="receipt" id="receipt"></div>
+  </section>
+</div>
+
+<!-- Primer bloque de programación: acá se guardan, uno por uno, los datos de los 268 cargos
+     (nivel, código, nombre, puntaje, jornada, y los dos indicadores). Es solamente información,
+     no hace ninguna cuenta por sí solo. -->
+<script>
+const CARGOS=[["Inicial",100,"Supervisor/a Nivel Inicial",3536.967,"C",0,1],["Inicial",101,"Director/a Nivel Inicial - T.C.",3274.447,"C",0,1],["Inicial",102,"Director/a 1º Nivel Inicial - T.S.",2728.708,"S",0,1],["Inicial",103,"Director/a 2º Nivel Inicial - T.S.",2545.013,"S",0,1],["Inicial",104,"Director/a 3º Nivel Inicial - T.S.",2388.037,"S",0,1],["Inicial",105,"Vice-Director/a Nivel Inicial - T.C.",3069.379,"C",0,1],["Inicial",106,"Vice-Director/a Nivel Inicial - T.S.",2558.373,"S",0,1],["Inicial",107,"Secretaria/o Nivel Inicial - T.C.",2865.645,"C",0,1],["Inicial",108,"Secretaria/o Nivel Inicial - T.S.",2243.66,"S",0,1],["Inicial",109,"Maestra/o (Sección) Nivel inicial - T.S.",1432.822,"S",0,0],["Inicial",110,"Maestra/o Bibliotecario - T.S.",1432.822,"S",0,0],["Inicial",111,"Maestra/o de Proyectos Específicos - T.S.",1432.822,"S",0,0],["Inicial",112,"Maestra/o Sección (Auxiliar de Sala) - T.S.",1432.822,"S",0,0],["Inicial",113,"Maestra/o Auxiliar de Secretaría Nivel Inicial - T.S.",1432.822,"S",0,0],["Inicial",114,"Tutor Docente Nivel Inicial - T.S.",1432.822,"S",0,0],["Inicial",115,"Profesor/a Nivel Inicial",68.232,"H",0,0],["Inicial",116,"Pareja Pedagógica - T.S.",1432.822,"S",0,0],["Primario",200,"Supervisor/a Nivel Primario - T.C.",3536.967,"C",0,1],["Primario",201,"Director/a Personal Único Nivel Primario - T.C.",2830.019,"C",0,1],["Primario",201,"Director/a Pers. Único Niv. Primario - T.C. (c/Adic. Bonif. Docente)",2830.019,"C",1,1],["Primario",202,"Director/a 1º Nivel Primario  - T.C.",3274.447,"C",0,1],["Primario",202,"Director/a 1º Nivel Primario  - T.C. (c/Adic. Bonif. Docente)",3274.447,"C",1,1],["Primario",203,"Director/a 2º Nivel Primario  - T.C.",3002.219,"C",0,1],["Primario",203,"Director/a 2º Nivel Primario  - T.C. (c/Adic. Bonif. Docente)",3002.219,"C",1,1],["Primario",204,"Director/a 3º Nivel Primario  - T.C.",2831.638,"C",0,1],["Primario",204,"Director/a 3º Nivel Primario  - T.C. (c/Adic. Bonif. Docente)",2831.638,"C",1,1],["Primario",205,"Director/a 1º Nivel Primario - T.S.",2728.708,"S",0,1],["Primario",206,"Director/a 2º Nivel Primario - T.S.",2545.013,"S",0,1],["Primario",207,"Director/a 3º Nivel Primario - T.S.",2388.037,"S",0,1],["Primario",208,"Vice-Director/a Nivel Primario - T.C.",3069.379,"C",0,1],["Primario",208,"Vice-Director/a Nivel Primario - T.C. (c/Adic. Bonif. Docente)",3069.379,"C",1,1],["Primario",209,"Vice-Director/a Nivel Primario - T.S.",2558.373,"S",0,1],["Primario",210,"Secretaria/o Nivel Primario - T.C.",2865.645,"C",0,1],["Primario",210,"Secretaria/o Nivel Primario - T.C. (c/Adic. Bonif. Docente)",2865.645,"C",1,1],["Primario",211,"Secretaria/o Nivel Primario - T.S.",2243.66,"S",0,1],["Primario",212,"Maestra/o (Año) Nivel Primario - T.S.",1432.822,"S",0,0],["Primario",213,"Maestra/o Bibliotecario - T.S.",1432.822,"S",0,0],["Primario",214,"Maestra/o de Computación - T.S.",1432.822,"S",0,0],["Primario",215,"Maestra/o Domiciliario Hospitalario T.S.",1432.822,"S",1,0],["Primario",216,"Maestra/o de Proyectos Específicos - T.S.",1432.822,"S",0,0],["Primario",217,"Maestra/o Recuperador - T.S.",1432.822,"S",0,0],["Primario",218,"Tutor Docente Nivel Primario - T.S.",1432.822,"S",0,0],["Primario",219,"Maestra/o (Año) Nivel Primario - T.C.",2748.566,"C",1,0],["Primario",220,"Maestra/o Auxiliar de Secretaría Nivel Primario - T.S.",1432.822,"S",0,0],["Primario",221,"Profesor/a Nivel Primario",68.232,"H",0,0],["Primario",221,"Profesor/a Nivel Primario (c/Adic. Bonif. Docente)",68.232,"H",1,0],["Primario",222,"Coordinador/a de Ciclo Nivel Primario - T. C.",2650.777,"C",0,0],["Primario",222,"Coordinador/a de Ciclo Nivel Primario - T. C. (c/Adic. Bonif. Docente)",2650.777,"C",1,0],["Primario",223,"Coordinador/a de Ciclo Nivel Primario - T. S.",1500.734,"S",0,0],["Primario",224,"Pareja Pedagógica - T.S.",1432.822,"S",0,0],["Primario",230,"Maestra/o Bibliotecario - T.C.",2748.566,"C",1,0],["Primario",231,"Maestra/o de Computación - T.C.",2748.566,"C",1,0],["Primario",232,"Maestra/o Domiciliario Hospitalario T.C.",2748.566,"C",1,0],["Primario",233,"Maestra/o de Proyectos Específicos - T.C.",2748.566,"C",1,0],["Primario",234,"Maestra/o Recuperador - T.C.",2748.566,"C",1,0],["Primario",235,"Tutor/a Docente Nivel Primario - T.C.",2748.566,"C",1,0],["Primario",236,"Maestra/o Auxiliar de Secretaría Nivel Primario - T.C.",2748.566,"C",1,0],["Educación Especial",300,"Supervisor/a - T.C.",3536.967,"C",1,1],["Educación Especial",301,"Director/a - T.C.",3274.447,"C",1,1],["Educación Especial",302,"Vice-Director/a - T.C.",3069.379,"C",1,1],["Educación Especial",303,"Secretario/a - T.C.",2865.645,"C",1,1],["Educación Especial",304,"Docente de Grupo - T.S.",1432.822,"S",1,0],["Educación Especial",305,"Docente de Sección - T.S.",1432.822,"S",1,0],["Educación Especial",306,"Docente de Ciclo - T.S.",1432.822,"S",1,0],["Educación Especial",307,"Docente Bibliotecario - T.S.",1432.822,"S",1,0],["Educación Especial",308,"Docente de Proyectos Específicos - T.S.",1432.822,"S",1,0],["Educación Especial",309,"Docente Tutor - T.S.",1432.822,"S",1,0],["Educación Especial",310,"Docente Auxiliar de Secretaría - T.S.",1432.822,"S",1,0],["Educación Especial",311,"Docente Auxiliar de Grupo - T.S.",1432.822,"S",1,0],["Educación Especial",312,"Hora Cátedra",68.232,"H",1,0],["Educación Especial",313,"Enfermero/a - T.S.",1432.822,"S",1,0],["Educación Especial",314,"Coordinador/a Pedagógico/a- T.S.",2455.949,"S",1,0],["Educación Especial",315,"Coordinador/a Técnico/a- T.S.",2455.949,"S",1,0],["Educación Especial",316,"Hora Cátedra Docente Equipo Interdisciplinario Institucional",68.232,"H",1,0],["Jóvenes y Adultos",400,"Supervisor/a Nivel Jóvenes y Adultos - T.C.",3561.903,"C",1,1],["Jóvenes y Adultos",401,"Director/a Centro Secundario C.E.N.S. - T.S.",2794.456,"S",1,1],["Jóvenes y Adultos",402,"Vice-Director/a Centro Secundario C.E.N.S. - T.S.",2568.5,"S",1,1],["Jóvenes y Adultos",403,"Coordinador/a de Ciclo Centro Secundario C.E.N.S. - T.S.",2085.318,"S",1,1],["Jóvenes y Adultos",404,"Secretaria/o Centro Secundario C.E.N.S. - T.S.",2046.889,"S",1,1],["Jóvenes y Adultos",405,"Pro-Secretaria/o Centro Secundario C.E.N.S. - T.S.",1910.43,"S",1,1],["Jóvenes y Adultos",406,"Director/a Escuela de Nivel Jóvenes y Adultos T.C.",3274.447,"C",1,1],["Jóvenes y Adultos",407,"Vice-Director/a Escuela de Nivel Jóvenes y Adultos T.C.",3069.379,"C",1,1],["Jóvenes y Adultos",408,"Secretaria/o Nivel Jóvenes y Adultos T.C.",2865.645,"C",1,1],["Jóvenes y Adultos",409,"Maestra/o (Ciclo) Nivel Jóvenes y Adulto T.S.",1432.822,"S",1,0],["Jóvenes y Adultos",410,"Maestra/o Auxiliar de Secretaría Nivel Jóvenes y Adulto - T.S.",1432.822,"S",1,0],["Jóvenes y Adultos",411,"Bibliotecario/a Escolar - T.S.",1432.822,"S",1,0],["Jóvenes y Adultos",412,"Maestra/o de Proyectos Específicos - T.S.",1432.822,"S",1,0],["Jóvenes y Adultos",413,"Maestra/o de Computación - T.S.",1432.822,"S",1,0],["Jóvenes y Adultos",414,"Maestra/o para Personas Privadas de la Libertad - T.S.",1432.822,"S",1,0],["Jóvenes y Adultos",415,"Tutor/a Docente Nivel Jóvenes y Adultos - T.S.",1432.822,"S",1,0],["Jóvenes y Adultos",416,"Maestra/o Actividades Prácticas Nivel Jóvenes y Adultos - T.S.",1432.822,"S",1,0],["Jóvenes y Adultos",417,"Auxiliar Administrativo/a Docente T.S.",1154.914,"S",1,0],["Jóvenes y Adultos",418,"Jefa/e de Laboratorio - T.S.",1227.974,"S",1,0],["Jóvenes y Adultos",419,"Ayudante Técnico de Trabajos Prácticos (ATTP) - T.S.",1211.122,"S",1,0],["Jóvenes y Adultos",420,"Preceptor/a T.S.",1296.427,"S",1,0],["Jóvenes y Adultos",421,"Profesor/a Nivel Jóvenes y Adultos ",68.232,"H",1,0],["Jóvenes y Adultos",422,"Auxiliar de Secretaría - T.S. ",1296.427,"S",1,0],["Jóvenes y Adultos",423,"Auxiliar de Secretaría - T.C.",2415.313,"C",1,0],["Educación Especial No Formal",451,"Director/a de Educación Especial No Formal -T.C.",3274.447,"C",1,1],["Educación Especial No Formal",452,"Vice-Director/a de Educación Especial No Formal -T.C.",3069.379,"C",1,1],["Educación Especial No Formal",453,"Secretaria/o Administrativa/o Educación Especial No Formal - T.S.",2046.889,"S",1,1],["Educación Especial No Formal",454,"Maestra/o Tutora/or Educación Especial No Formal - T.S.",1432.822,"S",1,0],["Educación Especial No Formal",455,"Tallerista Educación Especial No Formal - T.S.",1275.846,"S",1,0],["Educación Especial No Formal",456,"Profesor/a Educación Especial No Formal",68.232,"H",1,0],["Educación Especial No Formal",457,"Profesor/a Educación Especial No Formal - Equipo Multidisciplinario",68.232,"H",1,0],["Educación Especial No Formal",458,"Director/a de Educación No Formal -T.C.",3274.447,"C",0,1],["Educación Especial No Formal",459,"Vice-Director/a de Educación No Formal -T.C.",3069.379,"C",0,1],["Educación Especial No Formal",460,"Coordinador/a Educación No Formal -T.C.",2634.077,"C",0,1],["Educación Especial No Formal",461,"Secretaria/o Administrativa/o Educación No Formal -T.C.",2865.645,"C",0,1],["Educación Especial No Formal",462,"Preceptor/a Educación No Formal -T.C.",2415.313,"C",0,0],["Educación Especial No Formal",463,"Jefa/e General de Enseñanza Práctina Educación No Formal - T.S.",2148.677,"S",0,1],["Educación Especial No Formal",464,"Regente Enseñanza Práctica Educación No Formal - T.S.",2148.677,"S",0,1],["Educación Especial No Formal",465,"Coordinador/a Educación No Formal - T.S.",2012.854,"S",0,1],["Educación Especial No Formal",466,"Secretaria/o Administrativa/o Educación No Formal - T.S.",2046.889,"S",0,1],["Educación Especial No Formal",467,"Maestra/o de Enseñanza Práctica Jefa/e Sección Educación No Formal - T.S.",1637.511,"S",0,0],["Educación Especial No Formal",468,"Pro-Secretaria/o Educación No Formal - T.S.",1910.43,"S",0,1],["Educación Especial No Formal",469,"Maestra/o Enseñanza Práctica Educación No Formal - T.S.",1432.822,"S",0,0],["Educación Especial No Formal",470,"Maestra/o Tutora/or Educación No Formal - T.S.",1432.822,"S",0,0],["Educación Especial No Formal",471,"Bibliotecaria/o Educación No Formal - T.S.",1432.822,"S",0,0],["Educación Especial No Formal",472,"Preceptor/a Educación No Formal - T.S.",1296.427,"S",0,0],["Educación Especial No Formal",473,"Ayudante Técnico Trabajos Prácticos (ATTP) - Educación No Formal - T.S.",1211.076,"S",0,0],["Educación Especial No Formal",474,"Profesor/a Educación No Formal ",68.232,"H",0,0],["Educación Especial No Formal",475,"Auxiliar de Secretaría - T.S. ",1296.427,"S",0,0],["Educación Especial No Formal",476,"Auxiliar de Secretaría - T.C. ",2415.313,"C",0,0],["Gabinete de Psicopedagogía y Asistencia al Escolar",500,"Supervisor/a Provincial Interdisciplinario - T.C.",3536.967,"C",1,1],["Gabinete de Psicopedagogía y Asistencia al Escolar",501,"Director/a del Servicio de Asistente Terapéutica - T.C.",3274.447,"C",1,1],["Gabinete de Psicopedagogía y Asistencia al Escolar",502,"Secretaria/o Técnico Administrativo - T.C.",2865.645,"C",1,1],["Gabinete de Psicopedagogía y Asistencia al Escolar",503,"Asistente Social - T.C.",2728.708,"C",1,0],["Gabinete de Psicopedagogía y Asistencia al Escolar",504,"Asistente Educacional - T.C.",2728.708,"C",1,0],["Gabinete de Psicopedagogía y Asistencia al Escolar",505,"Psicóloga/o - T.C.",2728.708,"C",1,0],["Gabinete de Psicopedagogía y Asistencia al Escolar",506,"Psicomotricista - T.C.",2728.708,"C",1,0],["Gabinete de Psicopedagogía y Asistencia al Escolar",507,"Psicopedagoga/o - T.C.",2728.708,"C",1,0],["Gabinete de Psicopedagogía y Asistencia al Escolar",508,"Musicoterapeuta - T.C.",2728.708,"C",1,0],["Gabinete de Psicopedagogía y Asistencia al Escolar",509,"Terapista Ocupacional - T.C.",2728.708,"C",1,0],["Gabinete de Psicopedagogía y Asistencia al Escolar",510,"Fonoaudióloga/o - T.C.",2728.708,"C",1,0],["Gabinete de Psicopedagogía y Asistencia al Escolar",511,"Vice-Director/a de Clínica Terapéutica Gabinete P. y A.E. - T.C.",3069.379,"C",1,1],["Gabinete de Psicopedagogía y Asistencia al Escolar",512,"Vice-Director/a de Prevención y Promoción Gabinete P. y A.E. - T.C.",3069.379,"C",1,1],["Gabinete de Psicopedagogía y Asistencia al Escolar",513,"Vice-Director/a de Equipos Interdisciplinarios Esc. Gab. P. y A.E. - T.C.",3069.379,"C",1,1],["Gabinete de Psicopedagogía y Asistencia al Escolar",514,"Auxiliar de Secretaría Gabinete P. y A.E. - T.C.",2728.708,"C",1,0],["Supervisión Técnica",600,"S.T.S. Nivel Inicial, Primario, Especial y G. P. y A.E. - T.C.",3445.676,"C",0,1],["Supervisión Técnica",601,"S.T.S. Nivel Secundario - T.C.",3445.676,"C",0,1],["Supervisión Técnica",602,"S.T.S. Nivel Jóvenes y Adultos - T.C.",3445.676,"C",0,1],["Bibliotecas Esc. Niv. Inicial, Primario, Especial y Educ. Básica Adultos",700,"Director/a de Bibliotecas - T.C.",3274.447,"C",0,1],["Bibliotecas Esc. Niv. Inicial, Primario, Especial y Educ. Básica Adultos",701,"Vice-Director/a Departamental de Biblioteca  - T.C.",3069.379,"C",0,1],["Bibliotecas Esc. Niv. Inicial, Primario, Especial y Educ. Básica Adultos",702,"Secretaria/o Técnica/o Administrativa/o Departamental Bibliotecas  - T.C.",2865.645,"C",0,1],["Bibliotecas Esc. Niv. Inicial, Primario, Especial y Educ. Básica Adultos",703,"Supervisor/a Departamental de Bibliotecas - T.C.",3445.676,"C",0,1],["Bibliotecas Esc. Niv. Inicial, Primario, Especial y Educ. Básica Adultos",704,"Supervisor/a Provincial de Bibliotecas Escolares - T.C.",3536.967,"C",0,1],["Secundario",800,"Supervisor/a Nivel Secundario - T.C.",3536.967,"C",0,1],["Secundario",801,"Director/a - Rector/a 1º Agrícola - T.C.",3274.447,"C",0,1],["Secundario",802,"Director/a - Rector/a 1º - T.C.",3274.447,"C",0,1],["Secundario",803,"Director/a - Rector/a 2º - T.C.",2940.039,"C",0,1],["Secundario",804,"Director/a - Rector/a 3º - T.C.",2744.191,"C",0,1],["Secundario",805,"Director/a - Rector/a 2º - T.S.",2545.013,"S",0,1],["Secundario",806,"Director/a - Rector/a 3º - T.S.",2388.037,"S",0,1],["Secundario",807,"Vice-Director/a - Rector/a 1º - T.C.",3069.379,"C",0,1],["Secundario",808,"Vice-Director/a - Rector/a 2º - T.C.",2912.403,"C",0,1],["Secundario",809,"Vice-Director/a - Rector/a 3º - T.C.",2779.92,"C",0,1],["Secundario",810,"Vice-Director/a - Rector/a 1º - T.S.",2558.373,"S",0,1],["Secundario",811,"Vice-Director/a - Rector/a 2º - T.S.",2175.396,"S",0,1],["Secundario",812,"Vice-Director/a - Rector/a 3º - T.S.",2032.893,"S",0,1],["Secundario",813,"Secretaria/o 1º - T.C.",2865.645,"C",0,1],["Secundario",814,"Secretaria/o 2º - T.C.",2439.249,"C",0,1],["Secundario",815,"Secretaria/o 3º - T.C.",2217.702,"C",0,1],["Secundario",816,"Secretaria/o 1º - T.S.",2046.889,"S",0,1],["Secundario",817,"Secretaria/o 2º - T.S.",1910.43,"S",0,1],["Secundario",818,"Secretaria/o 3º - T.S.",1773.493,"S",0,1],["Secundario",819,"Pro-Secretaria/o 1º - T.S.",1910.43,"S",0,1],["Secundario",820,"Pro-Secretaria/o 2º - T.S.",1773.493,"S",0,1],["Secundario",821,"Coordinador/a de Ciclo EGB 3 - T.C.",2634.077,"C",0,1],["Secundario",822,"Coordinador/a de Ciclo POLIM. - T.C.",2634.077,"C",0,1],["Secundario",823,"Coordinador/a de TAP - T.C.",2634.077,"C",0,1],["Secundario",824,"Coordinador/a de Ciclo EGB 3 - T.S.",2012.854,"S",0,1],["Secundario",825,"Coordinador/a de Ciclo POLIM. - T.S.",2012.854,"S",0,1],["Secundario",826,"Regente 1º Ens. Técnica - T.S.",2148.677,"S",0,1],["Secundario",827,"Regente 3º Ens. Técnica - T.S.",1853.651,"S",0,1],["Secundario",828,"Jefa/e General de Enseñanza Práctica 1º  - T.S.",2148.677,"S",0,1],["Secundario",829,"Coordinador/a Inter-Áreas - T.S.",1773.493,"S",0,0],["Secundario",830,"Coordinador/a de Área",272.929,"Eq. 4 hs",0,0],["Secundario",831,"Jefa/e Seción Enseñanza Práctica Agrícola - T.C.",3073.404,"C",0,0],["Secundario",832,"Instructora/or Agrícola - T.C. ",2865.645,"C",0,0],["Secundario",833,"Maestra/o Enseñanza Práctica Enseñanza Técnica - T.S.",1432.822,"S",0,0],["Secundario",834,"Maestra/o Enseñanza Práctica Jefa/e Sección - T.S.",1637.511,"S",0,0],["Secundario",835,"Jefa/e de Area de TAP - T.S.",1637.511,"S",0,0],["Secundario",836,"Jefa/e de Laboratorio - T.S.",1228.133,"S",0,0],["Secundario",837,"Jefa/e PRCT 1º - T.S.",1603.158,"S",0,1],["Secundario",838,"Jefa/e PRCT 2º - T.S.",1463.995,"S",0,1],["Secundario",839,"Sub-Jefa/e PRCT 1º - T.S.",1409.443,"S",0,0],["Secundario",840,"Sub-Jefa/e PRCT 2º - T.S.",1360.458,"S",0,0],["Secundario",841,"Preceptora/or T.C.",2415.313,"C",0,0],["Secundario",842,"Preceptora/or T.S.",1296.427,"S",0,0],["Secundario",843,"Asesor/a Pedagógico/a (ASPD) - T.S.",2455.949,"S",0,0],["Secundario",844,"Ayudante Departamento Orientación - T.S.",1091.674,"S",0,0],["Secundario",845,"Psicopedagoga/o Departamento Orientación - T.S.",1091.674,"S",0,0],["Secundario",846,"Auxiliar Administrativa/o Docente - T.S.",1154.914,"S",0,0],["Secundario",847,"Referente Institucional Informático - T.S.",1296.427,"S",0,0],["Secundario",848,"Ayududante Técnico de Trabajos Prácticos (ATTP) - T.S.",1211.076,"S",0,0],["Secundario",849,"Ayudante de Clases Prácticas - T.S.",1211.076,"S",0,0],["Secundario",850,"Ayudante de Cátedra (Artística) - T.S.",1211.076,"S",0,0],["Secundario",851,"Bibliotecaria/o Escolar - T.S.",1432.822,"S",0,0],["Secundario",852,"Profesor/a Nivel Secundario",68.232,"H",0,0],["Secundario",853,"Prof. T.P. 02 24 Hs.",1637.574,"Eq. 24 hs",0,0],["Secundario",854,"Prof. T.P. 03 18 Hs.",1228.18,"Eq. 18 hs",0,0],["Secundario",855,"Maestra/o Enseñanza Práctica Agrícola - T.S.",1432.822,"S",0,0],["Secundario",856,"Maestra/o Tutora/or - T.S.",1432.822,"S",0,0],["Secundario",856,"Maestra/o Tutora/or - T.S. (c/Adic. Bonif. Docente)",1432.822,"S",1,0],["Secundario",857,"Maestra/o de Cultura Rural/Doméstica Agrícola - T.S.",1432.822,"S",0,0],["Secundario",858,"Maestra/o Especial (Artística)",682.322,"Eq. 10 hs",0,0],["Secundario",859,"Coordinador/a de T.T.P. - T.C.",2634.077,"C",0,1],["Secundario",860,"Coordinador/a de T.T.P. - T.S.",2012.854,"S",0,1],["Secundario",861,"Coordinador/a de T.A.P. - T.S.",2012.854,"S",0,1],["Bibliotecas Escolares Nivel Secundario, C.E.N.S. y Terciario",862,"Director/a Departamental de Biblioteca - T.C.",3274.447,"C",0,1],["Bibliotecas Escolares Nivel Secundario, C.E.N.S. y Terciario",863,"Vice-Director/a Departamental de Biblioteca - T.C.",3069.379,"C",0,1],["Bibliotecas Escolares Nivel Secundario, C.E.N.S. y Terciario",864,"Secretaria/o Técnica/o Administrativa/o Departamental Bibliotecas - T.C.",2865.645,"C",0,1],["Secundario",865,"Maestra/o Tutora/or - T.I.YF.E. - T.S.",1637.511,"S",0,0],["Secundario",866,"Auxiliar de Secretaría - T.S. ",1296.427,"S",0,0],["Secundario",867,"Auxiliar de Secretaría - T.C. ",2415.313,"C",0,0],["Terciario",900,"Supervisor/a Nivel Terciario - T.S.",3894.94,"C",0,1],["Terciario",901,"Director/a - Rector/a 1 Turno - T.S.",3709.467,"S",0,1],["Terciario",902,"Vice-Director/a - Rector/a - T.S.",3477.625,"S",0,1],["Terciario",903,"Bedel - T.S.",1825.255,"S",0,0],["Terciario",904,"Encargado de Laboratorio - T.S.",1412.382,"S",0,0],["Terciario",905,"Secretaria/o Administrativa/o- T.S.",2467.517,"S",0,1],["Terciario",906,"Pro-Secretaria/o - T.S.",2197.039,"S",0,0],["Terciario",907,"Bibliotecaria/o Especializada/o - T.S.",1718.391,"S",0,0],["Terciario",908,"Preceptora/or - T.S.",1490.848,"S",0,0],["Terciario",909,"Ayududante de Laboratorio (ATTP) - T.S.",1392.766,"S",0,0],["Terciario",910,"Profesor/a Nivel Terciario",78.465,"H",0,0],["Terciario",911,"Secretario/a o Coordinador/a Académico/a - T.S.",2467.517,"C",0,1],["Terciario",912,"Jefe/a de Formación Inicial - T.S.",1569.307,"C",0,1],["Terciario",913,"Jefe/a de Formación Permanente y Extensión - T.S.",1569.307,"C",0,1],["Terciario",914,"Jefe/a de Investigación Educativa - T.S.",1569.307,"C",0,1],["Terciario",915,"Jefe/a de Políticas Estudiantiles - T.S.",1569.307,"C",0,1],["Terciario",916,"Jefe de Bedeles - T.S.",1825.255,"C",0,1],["Terciario",917,"Referente de Entornos Formativos - T.S.",1804.703,"C",0,0],["Terciario",918,"Coordinador/a Interinstitucional de Prácticas - T.S.",1318.218,"C",0,0],["Terciario",919,"Coordinador/a de Vinculación Socioproductiva - T.S.",1318.218,"C",0,0],["Terciario",920,"Coord. Ciclo/Curso de Ingreso/Introductorio - T.S.",1318.218,"C",0,0],["Terciario",921,"Coordinador/a de Entornos Multimediales - T.S.",1318.218,"C",0,0],["Terciario",922,"Coordinador/a de Carreras - T.S.",855.272,"C",0,0],["Terciario",923,"Coordinador/a del Área del Conocimiento - T.S.",855.272,"C",0,0],["Terciario",924,"Coordinador/a de Formación Permanente - T.S.",855.272,"C",0,0],["Terciario",925,"Coordinador/a de Extensión - T.S.",855.272,"C",0,0],["Terciario",926,"Coordinador/a de Comunicación Institucional - T.S. ",855.272,"C",0,0],["Terciario",927,"Coordinador/a de Centro de Documentación - T.S.",1976.15,"C",0,0],["Terciario",928,"Tutor/a docente de carrera o de Curso de Ingreso - T.S.",499.04,"C",0,0],["Terciario",929,"Docente co-formador/a - T.S.",499.04,"C",0,0],["Terciario",930,"Asistente Técnico - T.S.",1490.841,"C",0,0],["Terciario",931,"Auxiliar de Secretaría - T.S. ",1490.841,"C",0,0],["Terciario",932,"Tutor/a del Depto. de Políticas Estudiantiles - T.S.",855.272,"C",0,0],["Terciario",933,"Tramo docente 1 (categoría A/B) - T.S.",941.584,"C",0,0],["Terciario",934,"Tramo docente 2 (categoría A/B) - T.S.",1569.307,"C",0,0],["Terciario",935,"Tramo docente 3 (categoría A/B) - T.S.",2353.96,"C",0,0],["Terciario",936,"Tramo docente 4 (categoría A/B) - T.S.",3138.614,"C",0,0],["Terciario",937,"Tramo prácticas 1 (categoría A/B) - T.S.",941.584,"C",0,0],["Terciario",938,"Tramo prácticas 2 (categoría A/B) - T.S.",1569.307,"C",0,0],["Terciario",939,"Tramo prácticas 3 (categoría A/B) - T.S.",2353.96,"C",0,0],["Terciario",940,"Tramo prácticas 4 (categoría A/B) - T.S.",3138.614,"C",0,0],["Supervisión",949,"Supervisor/a Departamental de Bibliotecas - T.C.",3445.676,"C",0,1],["Supervisión",950,"Supervisor/a General - T.C.",3663.758,"C",0,1],["Supervisión",951,"Supervisor/a de Áreas Complem.(Artística) - T.C.",3536.967,"C",0,1],["Supervisión",952,"Supervisor/a de Áreas Complem.(Educ.Fisica) - T.C.",3536.967,"C",0,1],["Supervisión",953,"Supervisor/a Provincial de Bibliotecas Escolares - T.C.",3536.967,"C",0,1],["Supervisión",954,"Supervisor/a General de Nivel Secundario - T.C.",3663.758,"C",0,1],["Supervisión",955,"Supervisor/a Escolar de Nivel Secundario - T.C.",3536.967,"C",0,1],["Supervisión",956,"Supervisor/a Técnica/o de Nivel Secundario - T.C.",3445.676,"C",0,1],["Supervisión",957,"Supervisor/a Departamental de Lenguajes Artísticos - Nivel Primario - T.C.",3368.658,"C",0,1],["Supervisión",958,"Supervisor/a Departamental de Educación Física - Nivel Primario - T.C.",3368.658,"C",0,1],["Supervisión",959,"Supervisor/a Departamental de Tecnología - Nivel Primario - T.C.",3368.658,"C",0,1]];
+</script>
+<script>
+const LOGO_SRC = "data:image/png;base64,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";
+/* CARGOS row shape: [nivel, codigo, nombre, puntaje, jornada, bonifDoc(0/1), funcJerarq(0/1)] */
+// Arriba: la forma de cada fila de datos guardada en CARGOS (definida en el bloque anterior).
+// Cada cargo es una lista con: nivel, código, nombre, puntaje, tipo de jornada, y dos indicadores (0 o 1).
+
+// Lista de tramos de antigüedad: el texto que se muestra y el porcentaje que le corresponde a cada uno.
+const ANTIGUEDAD = [
+  ["0 a 3 años",40],["4 a 6 años",45],["7 a 9 años",55],["10 a 12 años",70],
+  ["13 a 15 años",85],["16 a 17 años",95],["18 a 19 años",100],["20 a 21 años",110],
+  ["22 a 23 años",120],["24 años",130],["25 años",135],["26 años",140],
+  ["27 años",145],["28 años",150],["29 años",155],["30 o más años",160]
+];
+// Lista de zonas y el porcentaje de adicional que corresponde a cada una.
+const ZONAS = [["Rural",120],["Río Grande",100],["Tolhuin",120],["Ushuaia",100]];
+
+// Puntaje fijo que se usa SIEMPRE como base del cálculo de "Asignación Hora Cátedra" (211/221),
+// sin importar qué cargo principal se haya elegido (corresponde a "115 - Profesor/a Nivel Inicial").
+const REF_HORA_CATEDRA_SCORE = 68.232;
+
+// --- Datos de los adicionales nuevos ---
+
+// 650 - Refuerzo Ayuda Material Didáctico (No Remunerativo, automático según la jornada del cargo).
+const AMD_SIMPLE = 71300;      // Turno Simple.
+const AMD_COMPLETO = 142600;   // Turno Completo (= 2 × Turno Simple).
+const AMD_HORA = 3752.63;      // Valor de una hora cátedra para este concepto.
+const AMD_TOPE_HORAS = 38;     // Tope de horas cátedra a considerar (equivale a Turno Completo).
+
+// 673 - Adicional Transitorio Fo.I.D. y Conectividad Provincial (No Remunerativo, automático).
+const FOID_SIMPLE = 56000;
+const FOID_COMPLETO = 112000;
+const FOID_HORA = 3733.33;
+const FOID_TOPE_HORAS = 30;
+
+// 301 - Puntaje Junta (Remunerativo, opcional): puntaje fijo que se multiplica por el índice y la zona.
+const PUNTAJE_JUNTA_FIJO = 200;
+
+// 735 - Caja Complementaria (Deducción, opcional): porcentaje fijo sobre el Total Remunerativo.
+const CAJA_COMPLEMENTARIA_PCT = 4.5;
+
+// Sindicatos (Deducción, se elige uno solo): código, nombre y porcentaje sobre el Total Remunerativo.
+const SINDICATOS = [
+  ['777','SUETRA',2.00],
+  ['780','AMET',1.50],
+  ['757','UDA TDF',1.30],
+  ['755','U.D.A.',1.50],
+  ['714','SUTEF',2.00],
+  ['784','A.T.E.',2.20],
+  ['785','UPCN',2.00],
+  ['786','ATSA',2.00],
+];
+
+// Esta función calcula el monto de un concepto que depende de la jornada del cargo (como 650 y 673):
+// si el cargo es de Turno Completo o Simple usa el monto fijo correspondiente; si es Hora Cátedra
+// multiplica el valor de una hora por la cantidad de horas (con un tope); si es una "equivalencia"
+// fija (Eq. X hs), el monto es proporcional a esa cantidad de horas de equivalencia.
+function calcularPorJornada(jornada, horasUsuario, valorSimple, valorCompleto, valorHora, topeHoras){
+  if(jornada === 'C') return valorCompleto;
+  if(jornada === 'S') return valorSimple;
+  if(jornada === 'H'){
+    let h = horasUsuario;
+    if(h > topeHoras) h = topeHoras;
+    return valorHora * h;
+  }
+  if(typeof jornada === 'string' && jornada.startsWith('Eq.')){
+    const m = jornada.match(/\d+/);
+    const horasEq = m ? parseFloat(m[0]) : 0;
+    return valorHora * horasEq;
+  }
+  return 0;
+}
+
+// Formateador de números para mostrarlos como pesos argentinos, pero sin el símbolo $
+// (para que las columnas de la tabla ocupen menos espacio): ejemplo 123.456,78.
+const fmt = new Intl.NumberFormat('es-AR', {style:'decimal', minimumFractionDigits:2, maximumFractionDigits:2});
+// Función que aplica ese formato a cualquier número (si no hay número, muestra $0,00).
+function money(n){ return fmt.format(n||0); }
+
+// Función que dice si un cargo es de "Hora Cátedra" (jornada = "H"). Sirve para saber si hay
+// que mostrar el campo "Cantidad de horas" y multiplicar el básico por esa cantidad.
+function isHoraCatedra(row){
+  return row[4] === 'H';
+}
+
+/* ---------- Poblar selects fijos ---------- */
+// De acá en adelante se completan, con JavaScript, las opciones de los combos (dropdowns) del formulario.
+
+// Referencia al combo de "Nivel / Modalidad".
+const nivelSel = document.getElementById('nivel');
+// Se crea la opción "Elige el Nivel": aparece primero, está deshabilitada y viene seleccionada
+// por defecto, para que el combo arranque vacío (sin ningún nivel elegido todavía).
+const nivelPlaceholder = document.createElement('option');
+nivelPlaceholder.value = ''; nivelPlaceholder.textContent = 'Elige el Nivel';
+nivelPlaceholder.disabled = true; nivelPlaceholder.selected = true;
+nivelSel.appendChild(nivelPlaceholder);
+// Se arma la lista de niveles distintos que aparecen en los datos (CARGOS), en el mismo orden en que figuran.
+const nivelesOrden = [];
+CARGOS.forEach(r=>{ if(!nivelesOrden.includes(r[0])) nivelesOrden.push(r[0]); });
+// Por cada nivel encontrado, se crea una opción nueva y se agrega al combo "Nivel".
+nivelesOrden.forEach(n=>{
+  const o = document.createElement('option'); o.value = n; o.textContent = n;
+  nivelSel.appendChild(o);
+});
+
+// Referencia al combo de "Antigüedad": arranca en "Elegir" (nada elegido), y después se cargan
+// los tramos definidos más arriba.
+const antigSel = document.getElementById('antiguedad');
+const antigPlaceholder = document.createElement('option');
+antigPlaceholder.value = ''; antigPlaceholder.textContent = 'Elegir';
+antigPlaceholder.disabled = true; antigPlaceholder.selected = true;
+antigSel.appendChild(antigPlaceholder);
+ANTIGUEDAD.forEach(([label])=>{
+  const o = document.createElement('option'); o.value = label; o.textContent = label;
+  antigSel.appendChild(o);
+});
+
+// Referencia al combo de "Zona": arranca en "Elegir" (nada elegido), y después se cargan sus
+// opciones (Rural, Río Grande, Tolhuin, Ushuaia).
+const zonaSel = document.getElementById('zona');
+const zonaPlaceholder = document.createElement('option');
+zonaPlaceholder.value = ''; zonaPlaceholder.textContent = 'Elegir';
+zonaPlaceholder.disabled = true; zonaPlaceholder.selected = true;
+zonaSel.appendChild(zonaPlaceholder);
+ZONAS.forEach(([label])=>{
+  const o = document.createElement('option'); o.value = label; o.textContent = label;
+  zonaSel.appendChild(o);
+});
+
+// Referencia al contenedor de los casilleros de Sindicato: se arma uno por cada sindicato de la
+// lista SINDICATOS, y se pueden tildar varios a la vez (un docente puede estar afiliado a más de uno).
+const sindicatosCheckboxes = document.getElementById('sindicatosCheckboxes');
+SINDICATOS.forEach(([cod, nombre, pct])=>{
+  const label = document.createElement('label');
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  input.id = 'sindicato_' + cod;
+  input.value = cod;
+  label.appendChild(input);
+  label.appendChild(document.createTextNode(nombre));
+  sindicatosCheckboxes.appendChild(label);
+  // Apenas se tilda o destilda, se vuelve a calcular la liquidación.
+  input.addEventListener('change', calcularYRenderizar);
+});
+
+/* ---------- Cargo dependiente de Nivel ---------- */
+// Referencia al combo de "Cargo" (sus opciones cambian según qué Nivel se haya elegido).
+const cargoSel = document.getElementById('cargo');
+
+// Esta función vuelve a armar, desde cero, la lista de Cargos cada vez que cambia el Nivel elegido.
+function poblarCargos(){
+  // Nivel actualmente elegido.
+  const nivel = nivelSel.value;
+  // Se guarda qué cargo estaba elegido antes, por si sigue siendo válido después de repoblar la lista.
+  const prevValue = cargoSel.value;
+  // Se vacía el combo de Cargo para volver a armarlo de cero.
+  cargoSel.innerHTML = '';
+
+  // Se agrega la opción "Busca el cargo por nombre o categoría", deshabilitada, como primera opción.
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'Busca el cargo por nombre o categoría';
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  cargoSel.appendChild(placeholder);
+
+  // Se recorren TODOS los cargos (CARGOS) y se agregan al combo solamente los que son del nivel elegido.
+  CARGOS.forEach((r, idx)=>{
+    if(r[0] !== nivel) return; // si el cargo no es de este nivel, se lo salta y sigue con el siguiente.
+    const o = document.createElement('option');
+    o.value = idx; o.textContent = r[1] + ' - ' + r[2]; // texto que se ve: "código - nombre".
+    cargoSel.appendChild(o);
+  });
+  // Si el cargo que estaba elegido antes del cambio de nivel sigue existiendo, se lo vuelve a seleccionar.
+  if([...cargoSel.options].some(o=>o.value===prevValue && o.value!=='')) cargoSel.value = prevValue;
+  // Se actualiza si corresponde mostrar el campo "Cantidad de horas".
+  actualizarCamposDependientes();
+  // Se vuelve a calcular y a mostrar la liquidación con los datos actuales.
+  calcularYRenderizar();
+}
+
+// Esta función muestra u oculta el campo "Cantidad de horas cátedra" según el cargo que esté elegido.
+function actualizarCamposDependientes(){
+  const idx = cargoSel.value;
+  const horasField = document.getElementById('horasField');
+  const horaBadge = document.getElementById('horaBadge');
+  // Si todavía no se eligió ningún cargo, se oculta el campo de horas y se corta acá.
+  if(idx === '' || idx === undefined){
+    horasField.style.display = 'none';
+    horaBadge.style.display = 'none';
+    return;
+  }
+  // Se busca, dentro de los datos, la fila completa del cargo elegido.
+  const row = CARGOS[idx];
+  // Se pregunta si ese cargo es de Hora Cátedra.
+  const esHora = isHoraCatedra(row);
+  // Si es de Hora Cátedra se muestra el campo "Horas"; si no, se oculta (y se oculta el aviso).
+  horasField.style.display = esHora ? '' : 'none';
+  if(esHora){
+    // Cada vez que se elige un cargo de Hora Cátedra, el campo arranca en "0": todavía no se cargó nada.
+    document.getElementById('horas').value = '0';
+  } else {
+    // Si NO es de Hora Cátedra, se deja el valor de "Horas" en 1 (por las dudas, para no arrastrar un valor viejo).
+    document.getElementById('horas').value = '1';
+  }
+  // Se actualiza si corresponde mostrar el aviso "Introduce cantidad de horas...".
+  actualizarAvisoHoras();
+}
+
+// Muestra el aviso "Introduce cantidad de horas que deseas simular" mientras el campo esté en 0
+// (o vacío); apenas se carga una cantidad mayor a 0, el aviso desaparece solo.
+function actualizarAvisoHoras(){
+  const horasField = document.getElementById('horasField');
+  const horaBadge = document.getElementById('horaBadge');
+  if(horasField.style.display === 'none'){ horaBadge.style.display = 'none'; return; }
+  const valor = parseInt(document.getElementById('horas').value, 10);
+  horaBadge.style.display = (!valor || valor <= 0) ? '' : 'none';
+}
+// Cada vez que se escribe o cambia la cantidad de horas, se revisa si corresponde ocultar el aviso.
+document.getElementById('horas').addEventListener('input', actualizarAvisoHoras);
+document.getElementById('horas').addEventListener('change', actualizarAvisoHoras);
+
+// Cuando cambia el Nivel elegido, se vuelve a armar la lista de Cargos.
+nivelSel.addEventListener('change', poblarCargos);
+// Cuando cambia el Cargo elegido, se actualizan los campos que dependen de él y se recalcula la liquidación.
+cargoSel.addEventListener('change', ()=>{ actualizarCamposDependientes(); calcularYRenderizar(); });
+
+/* ---------- Escalas salariales ---------- */
+// Acá se guardan, una por una, TODAS las escalas salariales que van saliendo (índice, decreto y
+// vigencia de cada período). Para sumar una escala nueva cuando salga un decreto: agregar un
+// renglón más AL FINAL de este arreglo, sin borrar ni tocar los anteriores. Así el simulador
+// conserva todo el historial y cualquiera puede volver a simular con una escala vieja.
+const ESCALAS = [
+  { periodo:'Mayo 2026',   indice:99.07276,  decreto:'Dto. 1059/2026', vigencia:'01/05/2026', adicional35:1470657 },
+  { periodo:'Junio 2026',  indice:99.07276,  decreto:'Dto. 1059/2026', vigencia:'01/05/2026', adicional35:1505952 },
+  { periodo:'Julio 2026',  indice:103.03567, decreto:'Dto. 1059/2026', vigencia:'01/07/2026', adicional35:1539083 },
+  { periodo:'Agosto 2026', indice:103.03567, decreto:'Dto. 1059/2026', vigencia:'01/07/2026', adicional35:1568326 },
+];
+
+// Referencia al combo "Período / Escala Salarial", y al campo oculto + texto que muestran el índice.
+const escalaSel = document.getElementById('escala');
+const indiceInput = document.getElementById('indice');
+const indiceView = document.getElementById('indiceView');
+// Función que cambia el punto decimal por una coma, para mostrar el número "a la argentina" (ej: 103,03567).
+function fmtIndice(v){ return String(v).replace('.', ','); }
+
+// Se arma el combo de escalas: una opción por cada renglón de ESCALAS, mostrando el período.
+ESCALAS.forEach((esc, i)=>{
+  const o = document.createElement('option'); o.value = i; o.textContent = esc.periodo;
+  escalaSel.appendChild(o);
+});
+// Arranca elegida la escala más nueva (el último renglón de la lista).
+escalaSel.selectedIndex = ESCALAS.length - 1;
+
+// Esta función aplica la escala elegida en el combo: actualiza el índice (para los cálculos y la
+// pantalla) y el decreto/vigencia que se muestran en el cartel azul de arriba de todo.
+function aplicarEscala(){
+  const esc = ESCALAS[escalaSel.value];
+  indiceInput.value = esc.indice;
+  indiceView.textContent = fmtIndice(esc.indice);
+  document.getElementById('mastheadDecreto').textContent = esc.decreto;
+  document.getElementById('mastheadVigencia').textContent = esc.vigencia;
+  calcularYRenderizar();
+}
+// Cada vez que se elige otro período, se aplica esa escala y se recalcula todo.
+escalaSel.addEventListener('change', aplicarEscala);
+// Se aplica la escala inicial (la más nueva) apenas se abre la página.
+aplicarEscala();
+
+/* ---------- Recalcular en cualquier cambio ---------- */
+// Por cada uno de estos campos (Días, Antigüedad, Zona, Cantidad de horas de asignación, Horas cátedra):
+// apenas el usuario lo cambia, se vuelve a calcular y a mostrar la liquidación automáticamente.
+['dias','antiguedad','zona','horas'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', calcularYRenderizar);
+  document.getElementById(id).addEventListener('change', calcularYRenderizar);
+});
+// Lo mismo, pero para los botones "Agregar / Quitar" de la Bonificación por Ruralidad,
+// del Puntaje Junta, de la Caja Complementaria y del Adicional Remunerativo Antártida.
+['ruralidadAgregar','ruralidadQuitar','puntajeJuntaAgregar','puntajeJuntaQuitar',
+ 'cajaComplementariaAgregar','cajaComplementariaQuitar',
+ 'antartidaAgregar','antartidaQuitar'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', calcularYRenderizar);
+  document.getElementById(id).addEventListener('change', calcularYRenderizar);
+});
+
+/* ---------- Cálculo ---------- */
+// Esta es la función más importante de todas: hace TODA la cuenta de la liquidación, paso a paso,
+// y al final devuelve un "paquete" con todos los montos ya calculados.
+function calcular(){
+  // Posición, dentro de la lista CARGOS, del cargo que está elegido ahora mismo.
+  const idx = cargoSel.value;
+  // Si todavía no se eligió ningún cargo, o falta elegir Antigüedad o Zona, no hay nada para
+  // calcular: se devuelve "null" (nada), y el recibo se muestra en blanco.
+  if(idx === '' || idx === undefined) return null;
+  if(antigSel.value === '' || zonaSel.value === '') return null;
+  // Se busca la fila completa de datos del cargo elegido.
+  const row = CARGOS[idx];
+  // Se reparten los datos de esa fila en variables con nombre, para que el código sea más fácil de leer.
+  const [nivel, codigo, nombre, puntaje, jornada, bonifDocFlag, funcJerarqFlag] = row;
+
+  // Se lee el índice salarial (el número que se multiplica por el puntaje del cargo).
+  const indice = parseFloat(document.getElementById('indice').value) || 0;
+  // Se lee la cantidad de días a liquidar; si no hay un valor válido, se usa 30 (mes completo).
+  let dias = parseInt(document.getElementById('dias').value, 10);
+  if(!dias || dias < 1) dias = 30;
+
+  // Se busca el porcentaje que corresponde a la antigüedad elegida.
+  const antigLabel = antigSel.value;
+  const antigPct = (ANTIGUEDAD.find(a=>a[0]===antigLabel) || [null,0])[1];
+
+  // Se busca el porcentaje que corresponde a la zona elegida.
+  const zonaLabel = zonaSel.value;
+  const zonaPct = (ZONAS.find(z=>z[0]===zonaLabel) || [null,0])[1];
+
+  // Se pregunta si el botón "Agregar" de Ruralidad está tildado.
+  const ruralidadOn = document.getElementById('ruralidadAgregar').checked;
+
+  // Se pregunta si el cargo elegido es de Hora Cátedra.
+  const esHora = isHoraCatedra(row);
+  // Cantidad de horas a considerar (1 por defecto, para los cargos que no son de Hora Cátedra).
+  let horas = 1;
+  if(esHora){
+    // Si es de Hora Cátedra, se lee la cantidad cargada por el usuario (0 a 60 como máximo).
+    // Si todavía está en 0 (no se cargó nada), el cálculo directamente da 0 para ese cargo.
+    horas = parseInt(document.getElementById('horas').value, 10);
+    if(isNaN(horas) || horas < 0) horas = 0;
+    if(horas > 60) horas = 60;
+  }
+
+  // BÁSICO = índice × puntaje del cargo × cantidad de horas (si corresponde) × proporción de días trabajados.
+  const basico = indice * puntaje * horas * (dias/30);
+  // ANTIGÜEDAD = un porcentaje del básico, según los años de antigüedad elegidos.
+  const antiguedad = basico * (antigPct/100);
+  // FUNCIÓN DOCENTE = siempre el 230% del básico.
+  const funcionDocente = basico * 2.30;
+  // ADICIONAL BONIFICACIÓN DOCENTE: solo para los cargos que lo tienen habilitado (bonifDocFlag);
+  // es el 15% del básico más el 15% de la antigüedad.
+  const bonifDoc = bonifDocFlag ? (basico*0.15 + antiguedad*0.15) : 0;
+  // ADICIONAL FUNCIÓN JERÁRQUICA: solo para los cargos que lo tienen habilitado; 55% del básico.
+  const funcJerarq = funcJerarqFlag ? basico*0.55 : 0;
+  // ADICIONAL TRANSFORMACIÓN EDUCATIVA: siempre el 123% del básico.
+  const transfEduc = basico * 1.23;
+  // ZONA = un porcentaje (según la zona elegida) de la suma de: básico + antigüedad + función docente
+  // + adicional bonificación docente + adicional función jerárquica + transformación educativa.
+  const zonaMonto = (basico + antiguedad + funcionDocente + bonifDoc + funcJerarq + transfEduc) * (zonaPct/100);
+  // BONIFICACIÓN POR RURALIDAD: solo si está tildado "Agregar"; es el 60% de (básico + función docente).
+  const ruralidadMonto = ruralidadOn ? (basico + funcionDocente) * 0.60 : 0;
+
+  // ASIGNACIÓN HORA CÁTEDRA (código 412): todos los cargos del escalafón la cobran siempre, así
+  // que se calcula sola (no hace falta elegir nada), usando siempre el mismo puntaje de referencia
+  // (REF_HORA_CATEDRA_SCORE) y el mismo criterio Turno Simple/Completo/Hora Cátedra que antes,
+  // pero según la jornada del cargo elegido (igual que 650 y 673).
+  const refBasico221 = indice * REF_HORA_CATEDRA_SCORE;
+  const refAntig221 = refBasico221 * (antigPct/100);
+  const refFuncDoc221 = refBasico221 * 2.30;
+  const refTransfEduc221 = refBasico221 * 1.23;
+  const refSuma221 = refBasico221 + refAntig221 + refFuncDoc221 + refTransfEduc221;
+  // Se duplica la suma: así está definido en la planilla original (hoja "HC-221").
+  const totalBrutoUnidad221 = refSuma221 * 2;
+  let asignacion221 = 0;
+  if(jornada === 'C') asignacion221 = totalBrutoUnidad221 * 2;      // Turno Completo: el doble.
+  else if(jornada === 'S') asignacion221 = totalBrutoUnidad221;      // Turno Simple: el valor de una unidad.
+  else if(jornada === 'H'){
+    // Hora Cátedra: según la cantidad de horas cargada (con un tope propio de 42 horas para este concepto).
+    let horas221 = horas;
+    if(horas221 > 42) horas221 = 42;
+    asignacion221 = (totalBrutoUnidad221/21) * horas221;
+  } else if(typeof jornada === 'string' && jornada.startsWith('Eq.')){
+    // Equivalencia fija (Eq. X hs): proporcional a esa cantidad de horas, igual que 650 y 673.
+    const m = jornada.match(/\d+/);
+    const horasEq221 = m ? parseFloat(m[0]) : 0;
+    asignacion221 = (totalBrutoUnidad221/21) * horasEq221;
+  }
+
+  // PUNTAJE JUNTA (301): solo si está tildado "Agregar"; es un puntaje fijo (200) × el índice,
+  // más ese mismo resultado bonificado al 100% (es decir, el doble).
+  const puntajeJuntaOn = document.getElementById('puntajeJuntaAgregar').checked;
+  const puntajeJuntaBase = PUNTAJE_JUNTA_FIJO * indice;
+  const puntajeJuntaMonto = puntajeJuntaOn ? (puntajeJuntaBase + (puntajeJuntaBase * 1.00)) : 0;
+
+  // ADICIONAL REMUNERATIVO ANTÁRTIDA (35): solo si está tildado "Agregar"; es un monto FIJO
+  // (no se calcula con el índice ni con ningún porcentaje) que cambia según la escala elegida.
+  const antartidaOn = document.getElementById('antartidaAgregar').checked;
+  const antartidaMonto = antartidaOn ? ESCALAS[escalaSel.value].adicional35 : 0;
+
+  // BRUTO (Total Remunerativo) = la suma de todos los conceptos remunerativos (los que suman a favor
+  // del docente y sobre los que después se calculan los descuentos).
+  const bruto = basico + antiguedad + funcionDocente + zonaMonto + bonifDoc + transfEduc + funcJerarq
+    + ruralidadMonto + asignacion221 + puntajeJuntaMonto + antartidaMonto;
+
+  // REFUERZO AYUDA MATERIAL DIDÁCTICO (650) y ADICIONAL TRANSITORIO FO.I.D. Y CONECTIVIDAD (673):
+  // son "No Remunerativos" (no entran en la base de Jubilatorio/Obra Social) y se calculan solos,
+  // según la jornada del cargo elegido (Turno Simple/Completo, Hora Cátedra, o equivalencia fija).
+  const amd650 = calcularPorJornada(jornada, horas, AMD_SIMPLE, AMD_COMPLETO, AMD_HORA, AMD_TOPE_HORAS);
+  const foid673 = calcularPorJornada(jornada, horas, FOID_SIMPLE, FOID_COMPLETO, FOID_HORA, FOID_TOPE_HORAS);
+  // Total de conceptos No Remunerativos.
+  const noRemunerativo = amd650 + foid673;
+
+  // Descuento jubilatorio: 16% del bruto (Total Remunerativo).
+  const jubilatorio = bruto * 0.16;
+  // Descuento de obra social: 3% del bruto.
+  const obraSocial = bruto * 0.03;
+  // Seguro de vida obligatorio: monto fijo de $4.400.
+  const seguroVida = 4400;
+  // CAJA COMPLEMENTARIA (735): solo si está tildado "Agregar"; 4,5% del bruto.
+  const cajaComplementariaOn = document.getElementById('cajaComplementariaAgregar').checked;
+  const cajaComplementariaMonto = cajaComplementariaOn ? bruto * (CAJA_COMPLEMENTARIA_PCT/100) : 0;
+  // SINDICATOS: se puede tildar más de uno (hay docentes afiliados a varios a la vez). Por cada
+  // sindicato tildado se arma un descuento aparte, con su propio porcentaje sobre el bruto.
+  const sindicatosElegidos = SINDICATOS
+    .filter(([cod]) => document.getElementById('sindicato_' + cod).checked)
+    .map(([cod, nombre, pct]) => ({ cod, nombre, pct, monto: bruto * (pct/100) }));
+  // Total descontado por todos los sindicatos tildados, sumados.
+  const sindicatosMontoTotal = sindicatosElegidos.reduce((acc, s) => acc + s.monto, 0);
+
+  // Total de descuentos = la suma de todos los descuentos de arriba.
+  const deducciones = jubilatorio + obraSocial + seguroVida + cajaComplementariaMonto + sindicatosMontoTotal;
+  // NETO (Salario de Bolsillo) = Bruto + No Remunerativo, menos Deducciones.
+  const neto = bruto + noRemunerativo - deducciones;
+
+  // Se devuelven todos los datos y montos calculados, listos para que la función que arma el recibo los use.
+  return {
+    nivel, codigo, nombre, dias, antigLabel, zonaLabel, antigPct, zonaPct, jornada,
+    esHora, horas,
+    basico, antiguedad, funcionDocente, zonaMonto, bonifDoc, funcJerarq, transfEduc, ruralidadMonto, asignacion221, ruralidadOn,
+    puntajeJuntaOn, puntajeJuntaMonto, antartidaOn, antartidaMonto, amd650, foid673, noRemunerativo,
+    cajaComplementariaOn, cajaComplementariaMonto, sindicatosElegidos, sindicatosMontoTotal,
+    bruto, jubilatorio, obraSocial, seguroVida, deducciones, neto
+  };
+}
+
+/* ---------- Render recibo ---------- */
+// Esta función arma el HTML de UNA fila de la tabla del recibo, para un concepto que sí tiene un monto.
+function fila(cod, nombre, hs, dias, pct, monto, tipo){
+  // Si el monto es 0 (o no hay monto), no se muestra ninguna fila para este concepto.
+  if(!monto) return '';
+  // Se arma cada una de las tres columnas de importes: solo la que corresponde al tipo de
+  // concepto ('rem' = Remunerativo, 'norem' = No Remunerativo, 'ded' = Deducciones) lleva el monto.
+  const remCell = tipo === 'rem' ? '<td class="amt num remcol">'+money(monto)+'</td>' : '<td class="amt num"></td>';
+  const noremCell = tipo === 'norem' ? '<td class="amt num noremcol">'+money(monto)+'</td>' : '<td class="amt num"></td>';
+  const dedCell = tipo === 'ded' ? '<td class="amt num dedcol">'+money(monto)+'</td>' : '<td class="amt num"></td>';
+  // Se arma y se devuelve el renglón completo de la tabla (una fila <tr> con todas sus columnas <td>).
+  return '<tr class="'+tipo+'">'
+    + '<td class="cod">'+cod+'</td>'
+    + '<td>'+nombre+'</td>'
+    + '<td class="num">'+(hs||'')+'</td>'
+    + '<td class="num">'+(dias||'')+'</td>'
+    + '<td class="num">'+(pct!==undefined && pct!=='' ? pct+'%' : '')+'</td>'
+    + remCell + noremCell + dedCell
+    + '</tr>';
+}
+
+// Esta función arma una fila "vacía" (sin montos), para cuando todavía no se eligió ningún cargo:
+// sirve para mostrar la forma del recibo, con los campos en blanco, antes de simular nada.
+// Fila totalmente en blanco (sin texto en ninguna columna), usada cuando todavía no hay
+// ningún cálculo: solo se ve la banda de color alternada, como en la planilla original.
+function filaVacia(){
+  return '<tr class="fila-vacia">'
+    + '<td class="cod"></td>'
+    + '<td></td>'
+    + '<td class="num"></td><td class="num"></td><td class="num"></td>'
+    + '<td class="amt num"></td><td class="amt num"></td><td class="amt num"></td>'
+    + '</tr>';
+}
+
+// Esta función arma el HTML completo del recibo (encabezado, datos del cargo, tabla y total),
+// tanto para cuando está lleno con datos reales como para cuando está vacío (solo la plantilla).
+function plantillaRecibo({codigo, nombre, nivel, filas, totalRem, totalNoRem, totalDed, neto, vacio, escala}){
+  return `
+    <div class="r-head">
+      <img class="r-logo" src="${LOGO_SRC}" alt="Logo H.R.Z.">
+      <h3>Remuneración Mensual — Docente Activo</h3>
+    </div>
+    <div class="r-subline">
+      <span>Esc. Salarial s/${escala.decreto} - Vigencia: ${escala.vigencia}</span>
+      <span>Provincia de Tierra del Fuego</span>
+    </div>
+
+    <div class="r-cargobox${vacio ? ' vacio' : ''}">
+      <div class="row"><div class="lbl">Cargo</div><div class="val">${codigo ? codigo+' - ' : ''}${nombre}</div></div>
+      <div class="row"><div class="lbl">Nivel/Mod.</div><div class="val">${nivel}</div></div>
+    </div>
+
+    <div class="r-tablewrap">
+      <table class="r-table${vacio ? ' vacio' : ''}">
+        <colgroup>
+          <col style="width:48px">
+          <col style="width:230px">
+          <col style="width:37px">
+          <col style="width:41px">
+          <col style="width:41px">
+          <col style="width:92px">
+          <col style="width:101px">
+          <col style="width:92px">
+        </colgroup>
+        <thead>
+          <tr>
+            <th colspan="2">Concepto</th>
+            <th class="num" colspan="3">Unidades</th>
+            <th class="num" rowspan="2">Remunerativo</th>
+            <th class="num" rowspan="2">No Remunerativo</th>
+            <th class="num" rowspan="2">Deducciones</th>
+          </tr>
+          <tr>
+            <th>Cód.</th><th>Descripción</th>
+            <th class="num">Hs.</th><th class="num">Días</th><th class="num" style="text-align:center;">%</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filas}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td class="label" colspan="5">TOTAL PARCIAL</td>
+            <td class="amt num${vacio?' placeholder':''}">${totalRem}</td>
+            <td class="amt num${vacio?' placeholder':''}">${totalNoRem}</td>
+            <td class="amt num${vacio?' placeholder':''}">${totalDed}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="r-totals${vacio ? ' vacio' : ''}">
+      <span class="lbl">Total Salario de Bolsillo</span>
+      <span class="amt">${neto}</span>
+    </div>
+
+    ${vacio ? '' : '<div class="r-watermark">Realizó: hez@-TdF</div>'}
+  `;
+}
+
+// Esta es la función que se ejecuta cada vez que hay que actualizar la pantalla: llama a calcular(),
+// arma las filas de la tabla, y muestra todo dentro del recuadro del recibo.
+// Calcula qué mostrar en la columna "Hs." de los conceptos 650 y 673, según la jornada del cargo:
+// para Hora Cátedra, la cantidad de horas (topeada); para una equivalencia fija (Eq. X hs), esa
+// cantidad de horas; para los demás casos, no corresponde mostrar nada.
+function horasParaJornada(jornada, horasUsuario, tope){
+  if(jornada === 'H') return Math.min(horasUsuario, tope);
+  if(typeof jornada === 'string' && jornada.startsWith('Eq.')){
+    const m = jornada.match(/\d+/);
+    return m ? parseFloat(m[0]) : '';
+  }
+  return '';
+}
+
+function calcularYRenderizar(){
+  // Se hacen todos los cálculos (o se recibe "null" si todavía no hay ningún cargo elegido).
+  const r = calcular();
+  // Referencia al recuadro del recibo, donde se va a mostrar el resultado.
+  const el = document.getElementById('receipt');
+  // Escala salarial actualmente elegida en el combo (con su índice, decreto y vigencia).
+  const escalaActual = ESCALAS[escalaSel.value];
+
+  // CASO 1: todavía no se eligió ningún cargo -> se muestra el recibo "vacío" (solo la forma, en blanco).
+  if(!r){
+    // Se arman 8 filas totalmente en blanco, nada más que para mostrar la forma de la tabla.
+    const filasVacias = Array.from({length:8}, filaVacia).join('');
+    // Se muestra la plantilla del recibo, marcada como "vacío": todo el contenido queda en blanco,
+    // sin ninguna leyenda ni guion de relleno.
+    el.innerHTML = plantillaRecibo({
+      codigo:'', nombre:'', nivel:'',
+      filas: filasVacias, totalRem:'', totalNoRem:'', totalDed:'', neto:'', vacio:true, escala: escalaActual
+    });
+    return; // se corta acá: no hay nada más para calcular todavía.
+  }
+
+  // CASO 2: sí hay un cargo elegido -> se arma una fila por cada concepto de la liquidación.
+  // Cada fila lleva, además de sus datos, un "orden" (el código, convertido a número) que se usa
+  // para mostrar todas las filas de menor a mayor código, sin importar si son Remunerativo,
+  // No Remunerativo o Deducción.
+  const conceptos = [
+    {orden:1,   html: fila(1,'Básico (Cat. ' + r.codigo + ')', r.esHora ? r.horas : '', r.dias, '', r.basico, 'rem')},
+    {orden:11,  html: fila(11,'Antigüedad', '', '', r.antigPct, r.antiguedad, 'rem')},
+    {orden:21,  html: fila(21,'Función Docente', '', '', 230, r.funcionDocente, 'rem')},
+    {orden:25,  html: fila(25,'Zona', '', '', r.zonaPct, r.zonaMonto, 'rem')},
+    {orden:30,  html: fila(30,'Adic. Bonificación Docente', '', '', '', r.bonifDoc, 'rem')},
+    {orden:35,  html: fila(35,'Adic. Remun. Antártida', '', '', '', r.antartidaMonto, 'rem')},
+    {orden:211, html: fila(211,'Adic. Transf. Educativa', '', '', 123, r.transfEduc, 'rem')},
+    {orden:242, html: fila(242,'Adicional Función Jerárquica', '', '', 55, r.funcJerarq, 'rem')},
+    {orden:284, html: fila(284,'Bonificación por Ruralidad', '', '', '', r.ruralidadMonto, 'rem')},
+    {orden:301, html: fila(301,'Puntaje Junta', '', '', '', r.puntajeJuntaMonto, 'rem')},
+    {orden:412, html: fila(412,'Asig. Hora Cátedra - 221', horasParaJornada(r.jornada, r.horas, 42), '', '', r.asignacion221, 'rem')},
+    {orden:650, html: fila(650,'Ref. Ayuda Mat. Didáctico', horasParaJornada(r.jornada, r.horas, AMD_TOPE_HORAS), '', '', r.amd650, 'norem')},
+    {orden:673, html: fila(673,'Ad. Trans. FoID y Conect. Pcial.', horasParaJornada(r.jornada, r.horas, FOID_TOPE_HORAS), '', '', r.foid673, 'norem')},
+    {orden:701, html: fila(701,'C.P.S.P.T.F Jubilatorio', '', '', 16, r.jubilatorio, 'ded')},
+    {orden:713, html: fila('719/713','O.S.P.T.F./O.S.P.L.A.D. O. Social', '', '', 3, r.obraSocial, 'ded')},
+    {orden:735, html: fila(735,'Caja Complementaria', '', '', CAJA_COMPLEMENTARIA_PCT, r.cajaComplementariaMonto, 'ded')},
+    // Una fila por cada sindicato tildado (puede haber más de uno, o ninguno).
+    ...r.sindicatosElegidos.map(s => ({
+      orden: parseInt(s.cod)||0,
+      html: fila(s.cod, 'Sindicato ' + s.nombre, '', '', s.pct, s.monto, 'ded')
+    })),
+    {orden:773, html: fila(773,'Seguro Vida Obligatorio', '', '', '', r.seguroVida, 'ded')},
+  ];
+  // Se ordenan todos los conceptos de menor a mayor código, y se descartan los que no tienen fila
+  // (porque su monto dio 0, por ejemplo un adicional que no corresponde o no fue activado).
+  const filas = conceptos
+    .sort((a,b) => a.orden - b.orden)
+    .map(c => c.html)
+    .join('');
+
+  // Se muestra la plantilla del recibo, esta vez con todos los montos reales calculados (vacio:false).
+  el.innerHTML = plantillaRecibo({
+    codigo: r.codigo, nombre: r.nombre, nivel: r.nivel,
+    filas, totalRem: money(r.bruto), totalNoRem: money(r.noRemunerativo), totalDed: money(r.deducciones), neto: money(r.neto), vacio:false, escala: escalaActual
+  });
+}
+
+/* ---------- Botones ---------- */
+// Botón "Imprimir / Guardar PDF": abre el cuadro de impresión del navegador
+// (desde ese mismo cuadro también se puede elegir "Guardar como PDF").
+document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
+// Botón "Limpiar": vuelve todos los campos del formulario a sus valores iniciales.
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  document.getElementById('dias').value = '30';                // días: 30 (mes completo).
+  document.getElementById('ruralidadQuitar').checked = true;   // ruralidad: "Quitar" (sin bonificación).
+  document.getElementById('puntajeJuntaQuitar').checked = true;         // puntaje junta: "Quitar".
+  document.getElementById('cajaComplementariaQuitar').checked = true;   // caja complementaria: "Quitar".
+  document.getElementById('antartidaQuitar').checked = true;            // adic. Antártida: "Quitar".
+  // sindicatos: se destildan todos los casilleros.
+  SINDICATOS.forEach(([cod]) => { document.getElementById('sindicato_' + cod).checked = false; });
+  antigSel.value = '';                                         // antigüedad: vuelve al cartel "Elegir".
+  zonaSel.value = '';                                          // zona: vuelve al cartel "Elegir".
+  nivelSel.selectedIndex = 0;                                  // nivel: vuelve al cartel "Elige el Nivel".
+  poblarCargos();                                              // se rearma el combo de Cargo (queda vacío).
+});
+
+/* ---------- Init ---------- */
+// Al abrir la página por primera vez: se arma el combo de Cargo y se muestra el recibo vacío (la plantilla).
+poblarCargos();
+
+</script>
+
+</body>
+</html>
