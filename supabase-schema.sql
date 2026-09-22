@@ -33,3 +33,21 @@ alter table perfiles enable row level security;
 create policy "Cada usuario ve solo su propio perfil"
   on perfiles for select
   using (auth.uid() = id);
+
+-- ================================
+-- Encuesta del simulador (opcional, sin login)
+-- ================================
+create table if not exists respuestas_encuesta (
+  id uuid primary key default gen_random_uuid(),
+  creado_en timestamp with time zone default now(),
+  satisfaccion text,
+  nivel_educativo text,
+  interesado_normativa boolean,
+  tipos_normativa text[],
+  mail text
+);
+
+-- Nadie puede leer ni escribir esta tabla directamente desde el navegador:
+-- solo el backend del sitio (que usa la "service role key", nunca expuesta al
+-- público) puede hacerlo, a través de la ruta /api/encuesta.
+alter table respuestas_encuesta enable row level security;

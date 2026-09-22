@@ -1,10 +1,15 @@
 # Simulador de Salario Docente
 
-El proyecto se piensa en dos fases:
+El proyecto se piensa en etapas:
 
 - **Fase 1 (la actual)**: el simulador es de acceso libre y gratuito, sin
-  login ni pago. Es todo lo que hace falta para publicar el sitio HOY. No
-  necesitás crear ninguna cuenta de Supabase ni Mercado Pago todavía.
+  login ni pago.
+- **Encuesta opcional (la que sigue ahora)**: al ratito de estar usando el
+  simulador, aparece una tarjetita invitando a responder una encuesta corta
+  (satisfacción, nivel educativo, interés en normativa, mail opcional). No
+  bloquea el acceso a nadie, y a cada persona se le muestra una sola vez.
+  Para esto hace falta crear una cuenta de Supabase (solo la base de datos,
+  nada de login todavía).
 - **Fase 2 (más adelante)**: cuando tengas armada la normativa, se activa el
   login y la suscripción paga (ya construidos y probados) para darle acceso
   solo a quien pague. Esa parte del sitio (`/panel`, `/login`, `/registro`,
@@ -31,30 +36,60 @@ Con esto alcanza para tener el sitio en línea hoy mismo:
 
 Y listo — no hace falta nada más mientras estés en esta fase.
 
+## Encuesta opcional — cómo activarla
+
+Con estos pasos alcanza (no hace falta nada de Mercado Pago ni de login):
+
+1. Entrá a https://supabase.com, creá una cuenta y un proyecto nuevo (elegí
+   la región más cercana, por ejemplo São Paulo).
+2. Andá a **SQL Editor > New query**, pegá todo el contenido del archivo
+   `supabase-schema.sql` de esta carpeta, y ejecutalo. Esto crea la tabla
+   `respuestas_encuesta` (la que usa la encuesta) y también `perfiles`
+   (todavía sin uso, es para la Fase 2 — no molesta tenerla creada de una vez).
+3. Andá a **Project Settings > API** y copiá estos dos valores:
+   - `Project URL` → va en `NEXT_PUBLIC_SUPABASE_URL`
+   - `service_role` (¡ojo, esta es secreta, no la compartas ni la subas a
+     GitHub!) → va en `SUPABASE_SERVICE_ROLE_KEY`
+4. En tu proyecto de Vercel, andá a **Settings > Environment Variables** y
+   cargá esas dos variables.
+5. Subí a GitHub los archivos nuevos/modificados de esta carpeta: `pages/index.js`,
+   `pages/api/encuesta.js`, `components/EncuestaSimulador.js` y
+   `supabase-schema.sql`. Lo más simple: desde la página principal de tu
+   repositorio, **Add file > Upload files**, y arrastrá el contenido
+   completo de esta carpeta otra vez — GitHub actualiza los archivos que
+   cambiaron y agrega los nuevos, sin tocar el resto.
+6. Vercel va a volver a publicar el sitio solo en cuanto detecte el cambio en
+   GitHub. Si ya habías cargado las variables de entorno del paso 4 antes de
+   este push, no hace falta nada más; si las cargaste después, andá a
+   **Deployments > Redeploy** una vez.
+
+**Para ver las respuestas**: entrá al proyecto de Supabase > **Table Editor**
+> tabla `respuestas_encuesta`. Ahí vas a ver cada respuesta como una fila.
+Si en algún momento querés un resumen (por ejemplo, cuántas respuestas por
+nivel educativo), avisame y te paso la consulta para pegar en el SQL Editor.
+
 ## Fase 2 — Activar la normativa con suscripción paga
 
 Cuando tengas la normativa lista, avisame y decidimos juntos cómo mostrarla
 (¿lista de PDFs? ¿buscador? ¿por categoría?), la cargamos, y recién ahí
 seguís con estos pasos para activar el cobro:
 
-### 1. Crear el proyecto en Supabase (base de datos + login)
+### 1. Completar la configuración de Supabase (login)
 
-1. Entrá a https://supabase.com, creá una cuenta y un proyecto nuevo (elegí
-   la región más cercana, por ejemplo São Paulo).
-2. Andá a **SQL Editor > New query**, pegá todo el contenido del archivo
-   `supabase-schema.sql` de esta carpeta, y ejecutalo. Esto crea la tabla
-   `perfiles` donde se guarda el estado de cada suscripción.
-3. Andá a **Authentication > Providers** y confirmá que "Email" esté
+Si ya creaste el proyecto de Supabase para la encuesta, no hace falta crear
+uno nuevo — reutilizá ese mismo y completá lo que falta:
+
+1. Si todavía no lo creaste, entrá a https://supabase.com, creá una cuenta y
+   un proyecto nuevo (elegí la región más cercana, por ejemplo São Paulo), y
+   corré el `supabase-schema.sql` como se explica más arriba.
+2. Andá a **Authentication > Providers** y confirmá que "Email" esté
    habilitado (viene así por defecto).
-4. Opcional: en **Authentication > Settings**, podés desactivar "Confirm
+3. Opcional: en **Authentication > Settings**, podés desactivar "Confirm
    email" si preferís que la gente pueda entrar apenas se registra, sin
    confirmar el mail primero. Para un sitio real recomiendo dejarlo activado.
-5. Andá a **Project Settings > API** y copiá estos tres valores (los vas a
-   necesitar en el paso 4):
-   - `Project URL` → va en `NEXT_PUBLIC_SUPABASE_URL`
-   - `anon public` → va en `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `service_role` (¡ojo, esta es secreta, no la compartas!) → va en
-     `SUPABASE_SERVICE_ROLE_KEY`
+4. Andá a **Project Settings > API** y copiá la clave `anon public` → va en
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY` (es la única de las tres que todavía no
+   habías cargado si ya activaste la encuesta).
 
 ### 2. Crear la aplicación en Mercado Pago
 
