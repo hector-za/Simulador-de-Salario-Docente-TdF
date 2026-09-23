@@ -1,30 +1,46 @@
 import { useEffect, useState } from 'react';
 
-// Se guarda en el navegador de cada visitante para no volver a mostrar la
-// encuesta una vez que la respondió o la cerró (aparece una sola vez).
+// Se guarda en el navegador de cada visitante, con alguno de estos valores:
+// (nada)               -> nunca respondió ni cerró nada: se le muestra la encuesta completa
+// 'descartada'          -> cerró la invitación inicial sin contestar nada: no se le vuelve a mostrar nunca
+// 'completada'          -> ya contestó y además dejó su mail: no se le vuelve a mostrar nunca
+// 'completada_sin_mail' -> ya contestó (satisfacción y nivel) pero no dejó mail: en las próximas
+//                          visitas solo se le vuelve a preguntar por el mail, no el resto
 const CLAVE_LOCALSTORAGE = 'encuestaSimuladorEstado';
 
 const OPCIONES_SATISFACCION = ['Muy útil', 'Útil', 'Regular', 'Poco útil'];
 const OPCIONES_NIVEL = ['Inicial', 'Primario', 'Secundario', 'Superior'];
 
 export default function EncuestaSimulador() {
-  const [fase, setFase] = useState('oculta'); // oculta | invitacion | formulario | enviando | enviado
+  // oculta | invitacion | formulario | enviando | enviado | pedirMail | enviandoMail | enviadoMail
+  const [fase, setFase] = useState('oculta');
   const [satisfaccion, setSatisfaccion] = useState('');
   const [nivel, setNivel] = useState('');
   const [mail, setMail] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const yaRespondida = window.localStorage.getItem(CLAVE_LOCALSTORAGE);
-    if (yaRespondida) return;
+    const estadoGuardado = window.localStorage.getItem(CLAVE_LOCALSTORAGE);
+
+    if (estadoGuardado === 'completada' || estadoGuardado === 'descartada') return;
+
     // Se espera a que la persona ya haya tenido tiempo de usar el simulador
-    // antes de mostrarle la invitación, en vez de interrumpirla apenas entra.
-    const temporizador = setTimeout(() => setFase('invitacion'), 20000);
+    // antes de mostrarle algo, en vez de interrumpirla apenas entra.
+    const temporizador = setTimeout(() => {
+      setFase(estadoGuardado === 'completada_sin_mail' ? 'pedirMail' : 'invitacion');
+    }, 20000);
     return () => clearTimeout(temporizador);
   }, []);
 
   function descartar() {
     window.localStorage.setItem(CLAVE_LOCALSTORAGE, 'descartada');
+    setFase('oculta');
+  }
+
+  // Cerrar el pedido de mail (cuando ya había contestado antes) no lo marca
+  // como "no molestar más": simplemente se oculta por esta visita, y va a
+  // volver a aparecer la próxima vez, tal como se pidió.
+  function cerrarPedidoMail() {
     setFase('oculta');
   }
 
@@ -43,12 +59,32 @@ export default function EncuestaSimulador() {
         }),
       });
       if (!respuesta.ok) throw new Error('No se pudo enviar');
-      window.localStorage.setItem(CLAVE_LOCALSTORAGE, 'completada');
+      window.localStorage.setItem(CLAVE_LOCALSTORAGE, mail ? 'completada' : 'completada_sin_mail');
       setFase('enviado');
       setTimeout(() => setFase('oculta'), 4000);
     } catch (err) {
       setError('No se pudo enviar la respuesta. Probá de nuevo en un momento.');
       setFase('formulario');
+    }
+  }
+
+  async function enviarMail(e) {
+    e.preventDefault();
+    setError('');
+    setFase('enviandoMail');
+    try {
+      const respuesta = await fetch('/api/encuesta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mail: mail || null }),
+      });
+      if (!respuesta.ok) throw new Error('No se pudo enviar');
+      window.localStorage.setItem(CLAVE_LOCALSTORAGE, 'completada');
+      setFase('enviadoMail');
+      setTimeout(() => setFase('oculta'), 4000);
+    } catch (err) {
+      setError('No se pudo enviar el mail. Probá de nuevo en un momento.');
+      setFase('pedirMail');
     }
   }
 
@@ -118,6 +154,33 @@ export default function EncuestaSimulador() {
       {fase === 'enviado' && (
         <div style={estilos.tarjetaFlotante}>
           <p className="mensaje-ok" style={{ margin: 0 }}>¡Gracias por tu respuesta!</p>
+        </div>
+      )}
+
+      {(fase === 'pedirMail' || fase === 'enviandoMail') && (
+        <div style={estilos.tarjetaFlotante}>
+          <button style={estilos.botonCerrar} onClick={cerrarPedidoMail} aria-label="Cerrar">×</button>
+          <form onSubmit={enviarMail}>
+            {error && <div className="mensaje-error">{error}</div>}
+            <p style={{ margin: '0 0 10px', fontWeight: 600 }}>¡Gracias de nuevo por usar el simulador!</p>
+            <p style={estilos.pregunta}>¿Querés dejarnos tu mail para avisarte de novedades?</p>
+            <input
+              type="email"
+              placeholder="tu@mail.com"
+              value={mail}
+              onChange={(e) => setMail(e.target.value)}
+              style={estilos.inputMail}
+            />
+            <button type="submit" className="boton" style={{ marginTop: '14px' }} disabled={fase === 'enviandoMail'}>
+              {fase === 'enviandoMail' ? 'Enviando...' : 'Enviar mail'}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {fase === 'enviadoMail' && (
+        <div style={estilos.tarjetaFlotante}>
+          <p className="mensaje-ok" style={{ margin: 0 }}>¡Gracias, ya quedó guardado!</p>
         </div>
       )}
     </div>
