@@ -1,0 +1,16 @@
+{
+  "name": "Simulador de Salario Docente - Tierra del Fuego",
+  "short_name": "Sim. Salario Docente",
+  "description": "Simulador de liquidación de salario docente de Tierra del Fuego.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#071b2e",
+  "theme_color": "#123a5c",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
