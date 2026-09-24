@@ -2,11 +2,18 @@ import { useEffect, useState } from 'react';
 
 // Se guarda en el navegador de cada visitante, con alguno de estos valores:
 // (nada)               -> nunca respondió ni cerró nada: se le muestra la encuesta completa
-// 'descartada'          -> cerró la invitación inicial sin contestar nada: no se le vuelve a mostrar nunca
 // 'completada'          -> ya contestó y además dejó su mail: no se le vuelve a mostrar nunca
 // 'completada_sin_mail' -> ya contestó (satisfacción y nivel) pero no dejó mail: en las próximas
 //                          visitas solo se le vuelve a preguntar por el mail, no el resto
 const CLAVE_LOCALSTORAGE = 'encuestaSimuladorEstado';
+
+// Si cierra la invitación inicial sin contestar nada, no se le vuelve a
+// mostrar de inmediato (para no ser pesados) pero tampoco se lo descarta
+// para siempre: se guarda la fecha en que la cerró, y se le da otra
+// oportunidad pasado este tiempo.
+const CLAVE_FECHA_DESCARTE = 'encuestaSimuladorDescartadaEl';
+const DIAS_ESPERA_TRAS_DESCARTAR = 21;
+const MS_ESPERA_TRAS_DESCARTAR = DIAS_ESPERA_TRAS_DESCARTAR * 24 * 60 * 60 * 1000;
 
 const OPCIONES_SATISFACCION = ['Muy útil', 'Útil', 'Regular', 'Poco útil'];
 const OPCIONES_NIVEL = ['Inicial', 'Primario', 'Secundario', 'Superior'];
@@ -22,7 +29,14 @@ export default function EncuestaSimulador() {
   useEffect(() => {
     const estadoGuardado = window.localStorage.getItem(CLAVE_LOCALSTORAGE);
 
-    if (estadoGuardado === 'completada' || estadoGuardado === 'descartada') return;
+    if (estadoGuardado === 'completada') return;
+
+    if (!estadoGuardado) {
+      const fechaDescarte = window.localStorage.getItem(CLAVE_FECHA_DESCARTE);
+      if (fechaDescarte && Date.now() - Number(fechaDescarte) < MS_ESPERA_TRAS_DESCARTAR) {
+        return; // todavía no pasaron los 21 días desde que la cerró
+      }
+    }
 
     // Se espera a que la persona ya haya tenido tiempo de usar el simulador
     // antes de mostrarle algo, en vez de interrumpirla apenas entra.
@@ -33,7 +47,7 @@ export default function EncuestaSimulador() {
   }, []);
 
   function descartar() {
-    window.localStorage.setItem(CLAVE_LOCALSTORAGE, 'descartada');
+    window.localStorage.setItem(CLAVE_FECHA_DESCARTE, String(Date.now()));
     setFase('oculta');
   }
 
