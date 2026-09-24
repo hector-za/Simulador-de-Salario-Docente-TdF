@@ -149,6 +149,9 @@
   /* Refuerza el espacio antes del guion (después del decreto) y después de "del" (antes de la fecha). */
   .masthead-info .info-box .hl:first-of-type{margin-right:3px;}
   .masthead-info .info-box .hl:last-of-type{margin-left:3px;}
+  /* El cartel de contacto: se ve igual que los otros, pero es un link (mailto) clickeable. */
+  .masthead-info a.info-box{color:inherit;text-decoration:none;cursor:pointer;}
+  .masthead-info a.info-box:hover{text-decoration:underline;}
   /* En pantallas angostas (celular): el logo y el título se apilan, y las tres cajitas también. */
   @media (max-width:760px){
     .masthead-row{flex-direction:column;}
@@ -639,7 +642,7 @@
       <div class="masthead-info">
         <div class="info-box">Escala Salarial s/<span class="hl" id="mastheadDecreto">Dto. 1059/2026</span> - Vigencia: a partir del <span class="hl" id="mastheadVigencia">01/05/2026</span></div>
         <div class="info-box">Provincia de Tierra del Fuego</div>
-        <div class="info-box">Elaborado por hez@-TdF</div>
+        <a class="info-box" href="mailto:simulasalariodoc@gmail.com" title="Escribinos: simulasalariodoc@gmail.com">✉ Elaborado por hez@-TdF</a>
       </div>
     </div>
   </div>
