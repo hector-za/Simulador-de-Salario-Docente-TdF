@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;0,900;1,400&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Librería para el botón "Exportar a PDF": genera el archivo PDF directamente en el navegador de quien use el simulador. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   /* Acá se definen los "colores y medidas de referencia" que se usan en todo el diseño,
      para no tener que repetir el mismo código de color en cada regla. */
@@ -611,6 +613,14 @@
     border-color:#a97e1f;
   }
   .btn.ghost:hover{background:linear-gradient(180deg,#eeda9c,#d4a53c);}
+  /* El botón "Exportar a PDF": en tono granate, para diferenciarlo de "Imprimir" y "Limpiar". */
+  .btn.pdf{
+    background:linear-gradient(180deg,#b23b3b,#7e1f1f);
+    color:#fff;
+    border-color:#5e1616;
+  }
+  .btn.pdf:hover{background:linear-gradient(180deg,#c24a4a,#8f2626);}
+  .btn.pdf:disabled{opacity:.55;cursor:not-allowed;}
 
   /* Estilos que se aplican SOLO al imprimir (o guardar como PDF): se oculta todo menos el recibo. */
   @media print{
@@ -764,6 +774,7 @@
       <!-- Botones de acción, apilados al lado del cuadro de aclaraciones. -->
       <div class="actions">
         <button class="btn" id="btnPrint">Imprimir</button>
+        <button class="btn pdf" id="btnExportPdf">Exportar a PDF</button>
         <button class="btn ghost" id="btnReset">Limpiar</button>
       </div>
     </div>
@@ -1394,6 +1405,34 @@ function calcularYRenderizar(){
 // Botón "Imprimir / Guardar PDF": abre el cuadro de impresión del navegador
 // (desde ese mismo cuadro también se puede elegir "Guardar como PDF").
 document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
+
+// Botón "Exportar a PDF": genera el archivo PDF directamente (sin pasar por el cuadro de impresión),
+// usando la librería html2pdf.js. Se exporta solo el recibo, tal cual se ve en pantalla.
+const btnExportPdf = document.getElementById('btnExportPdf');
+btnExportPdf.addEventListener('click', ()=>{
+  if(document.querySelector('.r-cargobox.vacio')){
+    alert('Para exportar el recibo a PDF, primero completá el formulario (Cargo, Antigüedad y Zona).');
+    return;
+  }
+  const cargoTxt = cargoSel.options[cargoSel.selectedIndex] ? cargoSel.options[cargoSel.selectedIndex].textContent.trim() : '';
+  const nombreArchivo = 'Recibo de Haberes' + (cargoTxt ? ' - ' + cargoTxt : '') + '.pdf';
+
+  btnExportPdf.disabled = true;
+  const textoOriginal = btnExportPdf.textContent;
+  btnExportPdf.textContent = 'Generando...';
+
+  html2pdf().set({
+    margin: 6,
+    filename: nombreArchivo,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }).from(document.getElementById('receipt')).save().finally(()=>{
+    btnExportPdf.disabled = false;
+    btnExportPdf.textContent = textoOriginal;
+  });
+});
+
 // Botón "Limpiar": vuelve todos los campos del formulario a sus valores iniciales.
 document.getElementById('btnReset').addEventListener('click', ()=>{
   document.getElementById('dias').value = '30';                // días: 30 (mes completo).
