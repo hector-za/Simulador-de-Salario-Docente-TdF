@@ -7,8 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;0,900;1,400&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-<!-- Librería para el botón "Exportar a PDF": genera el archivo PDF directamente en el navegador de quien use el simulador. -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- Librerías para el botón "Exportar a PDF": generan el archivo PDF directamente en el navegador de quien use el simulador.
+     Se usan por separado (en vez del paquete html2pdf.js) para poder achicar el recibo y que siempre entre en una sola página. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   /* Acá se definen los "colores y medidas de referencia" que se usan en todo el diseño,
      para no tener que repetir el mismo código de color en cada regla. */
@@ -151,6 +153,7 @@
   /* Refuerza el espacio antes del guion (después del decreto) y después de "del" (antes de la fecha). */
   .masthead-info .info-box .hl:first-of-type{margin-right:3px;}
   .masthead-info .info-box .hl:last-of-type{margin-left:3px;}
+  /* La tercera cajita es un link "mailto:" — se ve igual que las demás, sin subrayado hasta el hover. */
   .masthead-info a.info-box{color:inherit;text-decoration:none;cursor:pointer;}
   .masthead-info a.info-box:hover{text-decoration:underline;}
   /* En pantallas angostas (celular): el logo y el título se apilan, y las tres cajitas también. */
@@ -823,9 +826,8 @@ const AMD_HORA = 3752.63;      // Valor de una hora cátedra para este concepto.
 const AMD_TOPE_HORAS = 38;     // Tope de horas cátedra a considerar (equivale a Turno Completo).
 
 // 673 - Adicional Transitorio Fo.I.D. y Conectividad Provincial (No Remunerativo, automático).
-const FOID_SIMPLE = 56000;
-const FOID_COMPLETO = 112000;
-const FOID_HORA = 3733.33;
+// El monto Turno Simple ahora viene de la escala elegida (esc.foidSimple, ver ESCALAS), porque
+// cambia mes a mes; acá solo queda el tope de horas, que no cambia.
 const FOID_TOPE_HORAS = 30;
 
 // 301 - Puntaje Junta (Remunerativo, opcional): puntaje fijo que se multiplica por el índice y la zona.
@@ -1025,11 +1027,21 @@ cargoSel.addEventListener('change', ()=>{ actualizarCamposDependientes(); calcul
 // vigencia de cada período). Para sumar una escala nueva cuando salga un decreto: agregar un
 // renglón más AL FINAL de este arreglo, sin borrar ni tocar los anteriores. Así el simulador
 // conserva todo el historial y cualquiera puede volver a simular con una escala vieja.
+// Cada escala suma ahora "funcionDocentePct" (% del concepto 21-Función Docente sobre el básico) y
+// "foidSimple" (monto Turno Simple del concepto 673; Completo = el doble, y Hora Cátedra = Completo/30).
+// En Mayo-Agosto 2026 estos dos valores no cambiaban (230% y $56.000 fijo), por eso no se habían
+// versionado todavía. A partir de Septiembre 2026 sí cambian mes a mes (Incremento Salarial s/Res.
+// S.T. N° 072/26 y 081/26), así que quedan versionados acá igual que el índice.
 const ESCALAS = [
-  { periodo:'Mayo 2026',   indice:99.07276,  decreto:'Dto. 1059/2026', vigencia:'01/05/2026', adicional35:1470657 },
-  { periodo:'Junio 2026',  indice:99.07276,  decreto:'Dto. 1059/2026', vigencia:'01/05/2026', adicional35:1505952 },
-  { periodo:'Julio 2026',  indice:103.03567, decreto:'Dto. 1059/2026', vigencia:'01/07/2026', adicional35:1539083 },
-  { periodo:'Agosto 2026', indice:103.03567, decreto:'Dto. 1059/2026', vigencia:'01/07/2026', adicional35:1568326 },
+  { periodo:'Mayo 2026',       indice:99.07276,  decreto:'Dto. 1059/2026', vigencia:'01/05/2026', adicional35:1470657, funcionDocentePct:230, foidSimple:56000 },
+  { periodo:'Junio 2026',      indice:99.07276,  decreto:'Dto. 1059/2026', vigencia:'01/05/2026', adicional35:1505952, funcionDocentePct:230, foidSimple:56000 },
+  { periodo:'Julio 2026',      indice:103.03567, decreto:'Dto. 1059/2026', vigencia:'01/07/2026', adicional35:1539083, funcionDocentePct:230, foidSimple:56000 },
+  { periodo:'Agosto 2026',     indice:103.03567, decreto:'Dto. 1059/2026', vigencia:'01/07/2026', adicional35:1568326, funcionDocentePct:230, foidSimple:56000 },
+  { periodo:'Septiembre 2026', indice:103.03567, decreto:'Res. S.T. N° 072/26 y 081/26', vigencia:'01/09/2026', adicional35:1568326, funcionDocentePct:255, foidSimple:56000 },
+  { periodo:'Octubre 2026',    indice:103.03567, decreto:'Res. S.T. N° 072/26 y 081/26', vigencia:'01/10/2026', adicional35:1568326, funcionDocentePct:265, foidSimple:56000 },
+  { periodo:'Noviembre 2026',  indice:103.03567, decreto:'Res. S.T. N° 072/26 y 081/26', vigencia:'01/11/2026', adicional35:1568326, funcionDocentePct:270, foidSimple:70000 },
+  { periodo:'Diciembre 2026',  indice:103.03567, decreto:'Res. S.T. N° 072/26 y 081/26', vigencia:'01/11/2026', adicional35:1568326, funcionDocentePct:270, foidSimple:70000 },
+  { periodo:'Enero 2027',      indice:103.03567, decreto:'Res. S.T. N° 072/26 y 081/26', vigencia:'01/01/2027', adicional35:1568326, funcionDocentePct:285, foidSimple:90000 },
 ];
 
 // Referencia al combo "Período / Escala Salarial", y al campo oculto + texto que muestran el índice.
@@ -1044,8 +1056,24 @@ ESCALAS.forEach((esc, i)=>{
   const o = document.createElement('option'); o.value = i; o.textContent = esc.periodo;
   escalaSel.appendChild(o);
 });
-// Arranca elegida la escala más nueva (el último renglón de la lista).
-escalaSel.selectedIndex = ESCALAS.length - 1;
+// Convierte una vigencia "DD/MM/YYYY" en fecha, para poder compararla con la de hoy.
+function parseVigencia(v){
+  const [d,m,y] = v.split('/').map(Number);
+  return new Date(y, m-1, d);
+}
+// Arranca elegida la escala vigente HOY (la de vigencia más reciente que ya empezó), no simplemente
+// la última cargada: así, si se suman escalas futuras (como un aumento ya conocido pero que todavía
+// no entró en vigencia), el simulador sigue mostrando por defecto la que corresponde a la fecha real,
+// y el usuario puede igual elegir a mano una escala futura o pasada desde el combo.
+function indiceEscalaVigenteHoy(){
+  const hoy = new Date();
+  let elegido = 0;
+  for(let i=0;i<ESCALAS.length;i++){
+    if(parseVigencia(ESCALAS[i].vigencia) <= hoy) elegido = i;
+  }
+  return elegido;
+}
+escalaSel.selectedIndex = indiceEscalaVigenteHoy();
 
 // Esta función aplica la escala elegida en el combo: actualiza el índice (para los cálculos y la
 // pantalla) y el decreto/vigencia que se muestran en el cartel azul de arriba de todo.
@@ -1095,6 +1123,10 @@ function calcular(){
 
   // Se lee el índice salarial (el número que se multiplica por el puntaje del cargo).
   const indice = parseFloat(document.getElementById('indice').value) || 0;
+  // Escala elegida en el combo: trae, además del índice, el % de Función Docente y el monto base
+  // del 673 vigentes para ese período (pueden cambiar mes a mes, como en el Incremento Salarial
+  // s/Res. S.T. N° 072/26 y 081/26).
+  const escalaActual = ESCALAS[escalaSel.value];
   // Se lee la cantidad de días a liquidar; si no hay un valor válido, se usa 30 (mes completo).
   let dias = parseInt(document.getElementById('dias').value, 10);
   if(!dias || dias < 1) dias = 30;
@@ -1126,8 +1158,9 @@ function calcular(){
   const basico = indice * puntaje * horas * (dias/30);
   // ANTIGÜEDAD = un porcentaje del básico, según los años de antigüedad elegidos.
   const antiguedad = basico * (antigPct/100);
-  // FUNCIÓN DOCENTE = siempre el 230% del básico.
-  const funcionDocente = basico * 2.30;
+  // FUNCIÓN DOCENTE = un % del básico que depende de la escala elegida (230% en Mayo-Agosto 2026;
+  // sube mes a mes desde Septiembre 2026 por el Incremento Salarial s/Res. S.T. N° 072/26 y 081/26).
+  const funcionDocente = basico * (escalaActual.funcionDocentePct/100);
   // ADICIONAL BONIFICACIÓN DOCENTE: solo para los cargos que lo tienen habilitado (bonifDocFlag);
   // es el 15% del básico más el 15% de la antigüedad.
   const bonifDoc = bonifDocFlag ? (basico*0.15 + antiguedad*0.15) : 0;
@@ -1147,7 +1180,7 @@ function calcular(){
   // pero según la jornada del cargo elegido (igual que 650 y 673).
   const refBasico221 = indice * REF_HORA_CATEDRA_SCORE;
   const refAntig221 = refBasico221 * (antigPct/100);
-  const refFuncDoc221 = refBasico221 * 2.30;
+  const refFuncDoc221 = refBasico221 * (escalaActual.funcionDocentePct/100);
   const refTransfEduc221 = refBasico221 * 1.23;
   const refSuma221 = refBasico221 + refAntig221 + refFuncDoc221 + refTransfEduc221;
   // Se duplica la suma: así está definido en la planilla original (hoja "HC-221").
@@ -1176,7 +1209,7 @@ function calcular(){
   // ADICIONAL REMUNERATIVO ANTÁRTIDA (35): solo si está tildado "Agregar"; es un monto FIJO
   // (no se calcula con el índice ni con ningún porcentaje) que cambia según la escala elegida.
   const antartidaOn = document.getElementById('antartidaAgregar').checked;
-  const antartidaMonto = antartidaOn ? ESCALAS[escalaSel.value].adicional35 : 0;
+  const antartidaMonto = antartidaOn ? escalaActual.adicional35 : 0;
 
   // BRUTO (Total Remunerativo) = la suma de todos los conceptos remunerativos (los que suman a favor
   // del docente y sobre los que después se calculan los descuentos).
@@ -1187,7 +1220,12 @@ function calcular(){
   // son "No Remunerativos" (no entran en la base de Jubilatorio/Obra Social) y se calculan solos,
   // según la jornada del cargo elegido (Turno Simple/Completo, Hora Cátedra, o equivalencia fija).
   const amd650 = calcularPorJornada(jornada, horas, AMD_SIMPLE, AMD_COMPLETO, AMD_HORA, AMD_TOPE_HORAS);
-  const foid673 = calcularPorJornada(jornada, horas, FOID_SIMPLE, FOID_COMPLETO, FOID_HORA, FOID_TOPE_HORAS);
+  // El 673 se arma con el monto Turno Simple de la escala elegida: Completo es el doble, y
+  // Hora Cátedra es Completo repartido en el tope de horas (30), igual que antes.
+  const foidSimple = escalaActual.foidSimple;
+  const foidCompleto = foidSimple * 2;
+  const foidHora = foidCompleto / FOID_TOPE_HORAS;
+  const foid673 = calcularPorJornada(jornada, horas, foidSimple, foidCompleto, foidHora, FOID_TOPE_HORAS);
   // Total de conceptos No Remunerativos.
   const noRemunerativo = amd650 + foid673;
 
@@ -1366,7 +1404,7 @@ function calcularYRenderizar(){
   const conceptos = [
     {orden:1,   html: fila(1,'Básico (Cat. ' + r.codigo + ')', r.esHora ? r.horas : '', r.dias, '', r.basico, 'rem')},
     {orden:11,  html: fila(11,'Antigüedad', '', '', r.antigPct, r.antiguedad, 'rem')},
-    {orden:21,  html: fila(21,'Función Docente', '', '', 230, r.funcionDocente, 'rem')},
+    {orden:21,  html: fila(21,'Función Docente', '', '', escalaActual.funcionDocentePct, r.funcionDocente, 'rem')},
     {orden:25,  html: fila(25,'Zona', '', '', r.zonaPct, r.zonaMonto, 'rem')},
     {orden:30,  html: fila(30,'Adic. Bonificación Docente', '', '', '', r.bonifDoc, 'rem')},
     {orden:35,  html: fila(35,'Adic. Remun. Antártida', '', '', '', r.antartidaMonto, 'rem')},
@@ -1407,7 +1445,8 @@ function calcularYRenderizar(){
 document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
 
 // Botón "Exportar a PDF": genera el archivo PDF directamente (sin pasar por el cuadro de impresión),
-// usando la librería html2pdf.js. Se exporta solo el recibo, tal cual se ve en pantalla.
+// usando html2canvas + jsPDF. El recibo se "fotografía" completo y esa imagen se achica lo necesario
+// (sin recortar nada) para que siempre entre entero en una sola hoja A4, sin importar cuántas líneas tenga.
 const btnExportPdf = document.getElementById('btnExportPdf');
 btnExportPdf.addEventListener('click', ()=>{
   if(document.querySelector('.r-cargobox.vacio')){
@@ -1421,13 +1460,32 @@ btnExportPdf.addEventListener('click', ()=>{
   const textoOriginal = btnExportPdf.textContent;
   btnExportPdf.textContent = 'Generando...';
 
-  html2pdf().set({
-    margin: 6,
-    filename: nombreArchivo,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }).from(document.getElementById('receipt')).save().finally(()=>{
+  const margenMM = 6; // margen blanco alrededor del recibo dentro de la hoja.
+
+  html2canvas(document.getElementById('receipt'), { scale: 2, useCORS: true }).then(canvas=>{
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const anchoHoja = pdf.internal.pageSize.getWidth();
+    const altoHoja = pdf.internal.pageSize.getHeight();
+    const anchoMax = anchoHoja - margenMM * 2;
+    const altoMax = altoHoja - margenMM * 2;
+
+    // Tamaño que ocuparía el recibo si usara todo el ancho disponible.
+    let anchoImg = anchoMax;
+    let altoImg = (canvas.height * anchoImg) / canvas.width;
+
+    // Si con ese ancho no entra de alto en una sola hoja, se achica hasta que entre entero.
+    if (altoImg > altoMax) {
+      altoImg = altoMax;
+      anchoImg = (canvas.width * altoImg) / canvas.height;
+    }
+
+    const x = (anchoHoja - anchoImg) / 2; // centrado horizontal.
+    const y = margenMM;
+    const imgData = canvas.toDataURL('image/jpeg', 0.98);
+    pdf.addImage(imgData, 'JPEG', x, y, anchoImg, altoImg);
+    pdf.save(nombreArchivo);
+  }).finally(()=>{
     btnExportPdf.disabled = false;
     btnExportPdf.textContent = textoOriginal;
   });
