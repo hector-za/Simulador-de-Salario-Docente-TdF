@@ -9,6 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;0,900;1,400&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <!-- Librería para el botón "Exportar a PDF": genera el archivo PDF directamente en el navegador de quien use el simulador. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- html2canvas por separado: se usa para "fotografiar" el recibo con ancho fijo (evita PDF en blanco o cortado a la mitad en algunos equipos). -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   /* Acá se definen los "colores y medidas de referencia" que se usan en todo el diseño,
      para no tener que repetir el mismo código de color en cada regla. */
@@ -1443,7 +1445,7 @@ function calcularYRenderizar(){
 document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
 
 // Botón "Exportar a PDF": genera el archivo PDF directamente (sin pasar por el cuadro de impresión),
-// usando la librería html2pdf.js. Se exporta solo el recibo, tal cual se ve en pantalla.
+// usando html2canvas (que "fotografía" el recibo con ancho fijo) + html2pdf.js (que arma el PDF). Se exporta solo el recibo.
 const btnExportPdf = document.getElementById('btnExportPdf');
 btnExportPdf.addEventListener('click', ()=>{
   if(document.querySelector('.r-cargobox.vacio')){
@@ -1453,19 +1455,102 @@ btnExportPdf.addEventListener('click', ()=>{
   const cargoTxt = cargoSel.options[cargoSel.selectedIndex] ? cargoSel.options[cargoSel.selectedIndex].textContent.trim() : '';
   const nombreArchivo = 'Recibo de Haberes' + (cargoTxt ? ' - ' + cargoTxt : '') + '.pdf';
 
+  if (typeof html2pdf === 'undefined') {
+    alert('No se pudo cargar el generador de PDF (se necesita conexión a internet). Probá con el botón "Imprimir" y elegí "Guardar como PDF".');
+    return;
+  }
+
   btnExportPdf.disabled = true;
   const textoOriginal = btnExportPdf.textContent;
   btnExportPdf.textContent = 'Generando...';
 
-  html2pdf().set({
+  const ANCHO_CAPTURA = 820;   // ancho fijo (px) con el que se "fotografía" el recibo: igual en PC y en celular.
+  const esMovil = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 920;
+  // Resoluciones a probar, de mayor a menor: si el equipo no aguanta una imagen grande, se reintenta con una más chica.
+  const escalas = esMovil ? [1.5, 1] : [2, 1.5, 1];
+
+  // Estilos que se aplican SOLO a la "copia" que se fotografía (la pantalla no cambia):
+  // se oculta todo menos el recibo, se le da ancho fijo y se deja de recortar la tabla (en el celular
+  // la tabla tiene scroll lateral y por eso salía cortada a la mitad).
+  const cssCaptura =
+    '.masthead,.panel,.actions{display:none !important;}' +
+    'body{margin:0 !important;padding:0 !important;background:#fff !important;}' +
+    '.stage{display:block !important;max-width:none !important;margin:0 !important;padding:0 !important;}' +
+    '.receipt-shell{min-width:0 !important;}' +
+    '.receipt{width:' + ANCHO_CAPTURA + 'px !important;max-width:none !important;box-shadow:none !important;}' +
+    '.r-tablewrap{overflow:visible !important;}';
+
+  // Verifica que la imagen no haya quedado en blanco (pasa en algunos equipos cuando la imagen es demasiado grande).
+  function tieneContenido(canvas){
+    try{
+      if(canvas.width < 10 || canvas.height < 10) return false;
+      const chico = document.createElement('canvas');
+      chico.width = 120; chico.height = 120;
+      const ctx = chico.getContext('2d');
+      ctx.drawImage(canvas, 0, 0, chico.width, chico.height);
+      const d = ctx.getImageData(0, 0, chico.width, chico.height).data;
+      for(let i = 0; i < d.length; i += 4){
+        if(d[i] < 235 || d[i+1] < 235 || d[i+2] < 235) return true;
+      }
+      return false;
+    }catch(e){ return false; }
+  }
+
+  function capturar(scale){
+    return html2canvas(document.getElementById('receipt'), {
+      scale: scale,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      scrollX: 0, scrollY: 0,
+      windowWidth: ANCHO_CAPTURA + 200,  // fuerza el diseño de escritorio al fotografiar.
+      windowHeight: 2000,
+      onclone: function(doc){
+        const st = doc.createElement('style');
+        st.textContent = cssCaptura;
+        doc.head.appendChild(st);
+      }
+    }).then(function(canvas){
+      return tieneContenido(canvas) ? canvas : Promise.reject(new Error('La imagen quedó en blanco'));
+    });
+  }
+
+  const scrollPrevio = { x: window.pageXOffset, y: window.pageYOffset };
+  window.scrollTo(0, 0); // fotografiar con la página arriba evita recortes por el desplazamiento.
+
+  const opcionesPdf = {
     margin: 6,
     filename: nombreArchivo,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
+    image: { type: 'jpeg', quality: 0.95 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }).from(document.getElementById('receipt')).save().finally(()=>{
+  };
+
+  async function generar(){
+    // Si por algún motivo no cargó html2canvas, se usa el método anterior (el de siempre).
+    if (typeof html2canvas === 'undefined') {
+      await html2pdf().set(Object.assign({ html2canvas: { scale: 2, useCORS: true } }, opcionesPdf)).from(document.getElementById('receipt')).save();
+      return;
+    }
+
+    if(document.fonts && document.fonts.ready){ try{ await document.fonts.ready; }catch(e){} }
+
+    let canvas = null, ultimoError = null;
+    for(const sc of escalas){
+      try{ canvas = await capturar(sc); break; }catch(e){ ultimoError = e; }
+    }
+    if(!canvas) throw (ultimoError || new Error('No se pudo generar la imagen'));
+
+    // El armado del PDF lo sigue haciendo html2pdf.js (mismos márgenes y formato de siempre), pero a partir de la imagen ya lista.
+    await html2pdf().set(opcionesPdf).from(canvas, 'canvas').save();
+  }
+
+  generar().catch(function(err){
+    console.error(err);
+    alert('No se pudo generar el PDF en este dispositivo. Probá con el botón "Imprimir" y elegí "Guardar como PDF".');
+  }).finally(function(){
     btnExportPdf.disabled = false;
     btnExportPdf.textContent = textoOriginal;
+    window.scrollTo(scrollPrevio.x, scrollPrevio.y);
   });
 });
 
