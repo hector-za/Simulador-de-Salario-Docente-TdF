@@ -615,7 +615,7 @@
     /* Tabla del recibo como lista: cada concepto en una fila, sin desplazarse de costado. */
     .r-tablewrap{overflow:visible;}
     table.r-table, table.r-table tbody, table.r-table tfoot{display:block;min-width:0;width:100%;}
-    table.r-table colgroup, table.r-table thead{display:none;}
+    table.r-table colgroup{display:none;}
     .r-table tbody tr{display:flex;align-items:center;gap:6px;padding:7px 10px;border-bottom:1px solid var(--r-line);}
     .r-table tbody tr:last-child{border-bottom:0;}
     .r-table tbody td{display:block;border:0;padding:0;font-size:12.5px;}
@@ -713,6 +713,59 @@
   @media screen and (max-width:760px){ .wm-footer{margin-top:22px;padding:0 14px;} .wm-footer span{font-size:clamp(20px,7vw,30px);white-space:normal;} }
   @media print{ .wm-footer{display:none !important;} }
   html.captura .wm-footer{display:none !important;}
+  /* ---------- Celular: títulos de columna siempre visibles en el recibo ---------- */
+  @media screen and (max-width:760px){
+    html:not(.exportando) table.r-table thead{display:block;}
+    html:not(.exportando) .r-table thead tr:first-child{display:none;}
+    html:not(.exportando) .r-table thead tr:nth-child(2){
+      display:flex;align-items:center;gap:6px;padding:7px 10px;
+      background:var(--r-head-bg);border-bottom:1px solid var(--r-head-border);
+    }
+    html:not(.exportando) .r-table thead tr:nth-child(2) th{
+      display:block;border:0 !important;padding:0 !important;background:transparent !important;
+      font-size:9.5px;font-weight:700;letter-spacing:.05em;color:var(--r-head-ink) !important;text-align:left;
+    }
+    html:not(.exportando) .r-table thead tr:nth-child(2) th:nth-child(1){flex:none;width:44px;}
+    html:not(.exportando) .r-table thead tr:nth-child(2) th:nth-child(2){flex:1;min-width:0;}
+    html:not(.exportando) .r-table thead tr:nth-child(2) th:nth-child(3),
+    html:not(.exportando) .r-table thead tr:nth-child(2) th:nth-child(4){display:none;}
+    html:not(.exportando) .r-table thead tr:nth-child(2) th:nth-child(5){flex:none;font-size:0;text-align:center !important;}
+    html:not(.exportando) .r-table thead tr:nth-child(2) th:nth-child(5)::after{content:"Unidades";font-size:9.5px;}
+    html:not(.exportando) .r-table thead tr:nth-child(2)::after{
+      content:"Importe";flex:none;min-width:86px;text-align:right;
+      font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--r-head-ink);
+    }
+    /* Debajo de cada importe, el nombre de su columna. */
+    html:not(.exportando) .r-table tbody td.amt:not(:empty)::after{
+      display:block;margin-top:1px;
+      font-size:8.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--r-sub);
+    }
+    html:not(.exportando) .r-table tbody td.remcol::after{content:"Remunerativo";}
+    html:not(.exportando) .r-table tbody td.noremcol::after{content:"No remunerativo";}
+    html:not(.exportando) .r-table tbody td.dedcol::after{content:"Deducciones";}
+    .r-table tbody td.amt{line-height:1.2;}
+  }
+  @media screen and (max-width:760px){
+    .r-table tbody td:nth-child(2){overflow-wrap:anywhere;}
+    html:not(.exportando) .r-table thead tr:nth-child(2) th:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  }
+  /* Celulares angostos (≤ 380 px): todo un poco más compacto para que nada se encime. */
+  @media screen and (max-width:380px){
+    .r-table tbody tr{gap:5px;padding:7px 8px;}
+    .r-table tbody td{font-size:11.5px;}
+    .r-table tbody td.cod{width:34px;font-size:9.5px;}
+    .r-table tbody td.amt{min-width:74px;}
+    .r-table tbody td:nth-child(3),.r-table tbody td:nth-child(4),.r-table tbody td:nth-child(5){font-size:9px;padding:2px 5px;}
+    html:not(.exportando) .r-table thead tr:nth-child(2){gap:5px;padding:7px 8px;}
+    html:not(.exportando) .r-table thead tr:nth-child(2) th:not(:nth-child(5)){font-size:8.5px !important;letter-spacing:.02em;}
+    html:not(.exportando) .r-table thead tr:nth-child(2) th:nth-child(1){width:34px;}
+    html:not(.exportando) .r-table thead tr:nth-child(2) th:nth-child(5)::after{content:"Unid.";font-size:8.5px;}
+    html:not(.exportando) .r-table thead tr:nth-child(2)::after{min-width:74px;font-size:8.5px;letter-spacing:.02em;}
+    html:not(.exportando) .r-table tbody td.amt:not(:empty)::after{font-size:7.5px;letter-spacing:.02em;}
+    .r-table tfoot td{font-size:11px;}
+    .r-head h3{font-size:12.5px;}
+    .r-cargobox .lbl{width:66px;}
+  }
   /* Versión "papel" del recibo: al exportar a PDF (captura) e imprimir, fondo blanco y nítido. */
   html.captura{
     --r-bg:#ffffff; --r-cell:#ffffff; --r-ink:#1c2b36; --r-label:#1a1a1a;
