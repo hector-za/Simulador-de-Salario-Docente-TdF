@@ -612,7 +612,9 @@
     .r-cargobox .lbl{width:74px;font-size:9px;padding:5px 8px;}
     .r-cargobox .val{font-size:12.5px;padding:5px 8px;}
 
-    /* Tabla del recibo como lista: cada concepto en una fila, sin desplazarse de costado. */
+  }
+  /* Tabla del recibo como lista: solo con el celular en vertical. Apaisado se muestra la tabla con todas sus columnas. */
+  @media screen and (max-width:760px) and (orientation:portrait){
     .r-tablewrap{overflow:visible;}
     table.r-table, table.r-table tbody, table.r-table tfoot{display:block;min-width:0;width:100%;}
     table.r-table colgroup{display:none;}
@@ -637,6 +639,8 @@
     html:not(.exportando) .r-table tfoot td:nth-child(4)::before{content:"Deducciones";}
     .r-table tfoot td::before{display:block;font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--r-sub);}
     .r-table tfoot td.label::before{content:none;}
+  }
+  @media screen and (max-width:760px){
     .r-totals{padding:10px 12px;margin-top:10px;}
     .r-totals .lbl{font-size:12px;}
     .r-totals .amt{font-size:22px;}
@@ -661,14 +665,18 @@
   /* ---------- Recibo: títulos y Total Parcial con más contraste; bordes sin superponerse ---------- */
   :root{
     /* Color de títulos, Total Parcial y etiquetas Cargo / Nivel. */
-    --r-head-bg:#98b9d7;
-    --r-head-ink:#0b1626; --r-head-line:rgba(11,22,38,.16); --r-head-border:#98b9d7;
+    --r-head-bg:#d6e6f5;
+    --r-head-ink:#0b1626; --r-head-line:rgba(11,22,38,.16); --r-head-border:#b3bcc7;
   }
-  .r-table thead th{background:var(--r-head-bg) !important;color:var(--r-head-ink) !important;border-color:var(--r-head-line) !important;}
-  .r-table tfoot td{background:var(--r-head-bg) !important;color:var(--r-head-ink) !important;border-color:var(--r-head-line) !important;}
+  .r-table thead th{background:var(--r-head-bg) !important;color:var(--r-head-ink) !important;border-color:var(--r-head-border) !important;}
+  .r-table tfoot td{background:var(--r-head-bg) !important;color:var(--r-head-ink) !important;border-color:var(--r-head-border) !important;}
   .r-table tfoot td.label{color:var(--r-head-ink) !important;}
   .r-tablewrap{border-color:var(--r-head-border);overflow:hidden;}
   /* El borde exterior lo dibuja el recuadro redondeado: las celdas de los extremos no llevan borde propio. */
+  /* Sin líneas verticales dentro del recibo: solo el encabezado de la tabla las conserva. */
+  .r-table tbody td, .r-table tfoot td{border-left:0 !important;border-right:0 !important;}
+  .r-table thead tr:last-child th{border-bottom:1px solid var(--r-head-border) !important;}
+  .r-table tfoot td{border:0 !important;}   /* Total Parcial: sin líneas de división, solo el contorno del recibo. */
   .r-table tr > *:first-child{border-left:0 !important;}
   .r-table tr > *:last-child{border-right:0 !important;}
   .r-table thead tr:first-child > *{border-top:0 !important;}
@@ -677,19 +685,19 @@
   .r-cargobox{border-color:var(--r-head-border);}
   .r-cargobox .row{border-bottom-color:var(--r-line);}
   .r-cargobox .row + .row .lbl{border-top:1px solid var(--r-head-line);}
-  @media screen and (max-width:760px){
+  @media screen and (max-width:760px) and (orientation:portrait){
     .r-table tfoot tr{background:var(--r-head-bg);}
     .r-table tfoot td::before{color:#1d3048 !important;}
   }
-  html.captura .r-tablewrap{overflow:hidden !important;border:1px solid #98b9d7 !important;border-radius:10px !important;}
-  html.captura .r-cargobox{border-color:#98b9d7 !important;}
+  html.captura .r-tablewrap{overflow:hidden !important;border:1px solid #b3bcc7 !important;border-radius:10px !important;}
+  html.captura .r-cargobox{border-color:#b3bcc7 !important;}
 
   /* ---------- Impresión / "Guardar como PDF": recibo completo en una hoja A4 ---------- */
   @page{size:A4 portrait;margin:10mm;}
   @media print{
     html,body{width:auto !important;min-height:0 !important;}
-    .receipt{padding:10px 12px !important;border:1px solid #98b9d7 !important;border-radius:12px !important;break-inside:avoid;page-break-inside:avoid;}
-    .r-tablewrap{overflow:hidden !important;border:1px solid #98b9d7 !important;}
+    .receipt{padding:10px 12px !important;border:1px solid #b3bcc7 !important;border-radius:12px !important;break-inside:avoid;page-break-inside:avoid;}
+    .r-tablewrap{overflow:hidden !important;border:1px solid #b3bcc7 !important;}
     table.r-table{min-width:0 !important;width:100% !important;font-size:11px !important;height:auto !important;}
     .r-table thead th{padding:5px 6px !important;font-size:9.5px !important;}
     .r-table tbody td{padding:4px 6px !important;}
@@ -714,7 +722,7 @@
   @media print{ .wm-footer{display:none !important;} }
   html.captura .wm-footer{display:none !important;}
   /* ---------- Celular: títulos de columna siempre visibles en el recibo ---------- */
-  @media screen and (max-width:760px){
+  @media screen and (max-width:760px) and (orientation:portrait){
     html:not(.exportando) table.r-table thead{display:block;}
     html:not(.exportando) .r-table thead tr:first-child{display:none;}
     html:not(.exportando) .r-table thead tr:nth-child(2){
@@ -745,12 +753,12 @@
     html:not(.exportando) .r-table tbody td.dedcol::after{content:"Deducciones";}
     .r-table tbody td.amt{line-height:1.2;}
   }
-  @media screen and (max-width:760px){
+  @media screen and (max-width:760px) and (orientation:portrait){
     .r-table tbody td:nth-child(2){overflow-wrap:anywhere;}
     html:not(.exportando) .r-table thead tr:nth-child(2) th:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   }
   /* Celulares angostos (≤ 380 px): todo un poco más compacto para que nada se encime. */
-  @media screen and (max-width:380px){
+  @media screen and (max-width:380px) and (orientation:portrait){
     .r-table tbody tr{gap:5px;padding:7px 8px;}
     .r-table tbody td{font-size:11.5px;}
     .r-table tbody td.cod{width:34px;font-size:9.5px;}
@@ -1261,15 +1269,26 @@ function parseVigencia(v){
   const [d,m,y] = v.split('/').map(Number);
   return new Date(y, m-1, d);
 }
-// Arranca elegida la escala vigente HOY (la de vigencia más reciente que ya empezó), no simplemente
-// la última cargada: así, si se suman escalas futuras (como un aumento ya conocido pero que todavía
-// no entró en vigencia), el simulador sigue mostrando por defecto la que corresponde a la fecha real,
-// y el usuario puede igual elegir a mano una escala futura o pasada desde el combo.
+// Arranca elegido el período que corresponde a la fecha de HOY:
+//  - Del día 1 al 10 de cada mes se muestra el mes ANTERIOR (para que los docentes vean cuánto van a cobrar
+//    o cuánto cobraron en concepto del mes que acaba de pasar).
+//  - Desde el día 11 se muestra el mes en curso.
+// Si ese mes todavía no está cargado en ESCALAS, se usa el último período cargado que no lo supere.
+// El usuario puede igual elegir a mano cualquier otro período desde el combo.
+const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DIA_CAMBIO_PERIODO = 10;   // hasta este día (inclusive) se muestra el mes anterior.
+// Convierte un período tipo "Octubre 2026" en un número comparable (año*12 + mes).
+function clavePeriodo(texto){
+  const [mes, anio] = texto.trim().toLowerCase().split(/\s+/);
+  return Number(anio) * 12 + MESES_ES.indexOf(mes);
+}
 function indiceEscalaVigenteHoy(){
   const hoy = new Date();
+  let clave = hoy.getFullYear() * 12 + hoy.getMonth();     // mes en curso
+  if(hoy.getDate() <= DIA_CAMBIO_PERIODO) clave -= 1;      // hasta el día 10: mes anterior
   let elegido = 0;
   for(let i=0;i<ESCALAS.length;i++){
-    if(parseVigencia(ESCALAS[i].vigencia) <= hoy) elegido = i;
+    if(clavePeriodo(ESCALAS[i].periodo) <= clave) elegido = i;
   }
   return elegido;
 }
@@ -1639,6 +1658,28 @@ function calcularYRenderizar(){
   });
 }
 
+/* ---------- Celular apaisado: la tabla del recibo con todas sus columnas, ajustada al ancho de la pantalla ---------- */
+// En vertical el recibo se ve como lista (cada concepto en una fila). En apaisado se muestra la tabla real
+// y, si la pantalla es más angosta que la tabla, se achica un poco para que entre completa sin desplazarse.
+const TABLA_ANCHO_BASE = 600;
+const mqLista = window.matchMedia('(max-width:760px) and (orientation:portrait)');
+function ajustarTablaRecibo(){
+  const tabla = document.querySelector('#receipt table.r-table');
+  const caja = document.querySelector('#receipt .r-tablewrap');
+  if(!tabla || !caja || !('zoom' in document.documentElement.style)) return;
+  tabla.style.zoom = 1;
+  if(mqLista.matches) return;               // modo lista (celular vertical): sin ajuste.
+  const disponible = caja.clientWidth;
+  const necesario = Math.max(caja.scrollWidth, TABLA_ANCHO_BASE);   // ancho real que pide la tabla (sin achicar).
+  if(disponible > 0 && disponible < necesario){
+    tabla.style.zoom = Math.floor((disponible / necesario) * 1000) / 1000;
+  }
+}
+new MutationObserver(ajustarTablaRecibo).observe(document.getElementById('receipt'), { childList:true });
+window.addEventListener('resize', ajustarTablaRecibo);
+window.addEventListener('orientationchange', ()=>{ setTimeout(ajustarTablaRecibo, 150); setTimeout(ajustarTablaRecibo, 500); });
+ajustarTablaRecibo();
+
 /* ---------- Botones ---------- */
 // Botón "Imprimir / Guardar PDF": abre el cuadro de impresión del navegador
 // (desde ese mismo cuadro también se puede elegir "Guardar como PDF").
@@ -1678,7 +1719,8 @@ btnExportPdf.addEventListener('click', ()=>{
     '.stage{display:block !important;max-width:none !important;margin:0 !important;padding:0 !important;}' +
     '.receipt-shell{min-width:0 !important;}' +
     '.receipt{width:' + ANCHO_CAPTURA + 'px !important;max-width:none !important;box-shadow:none !important;}' +
-    '.r-tablewrap{overflow:visible !important;}';
+    '.r-tablewrap{overflow:visible !important;}' +
+    'table.r-table{zoom:1 !important;}';
 
   // Verifica que la imagen no haya quedado en blanco (pasa en algunos equipos cuando la imagen es demasiado grande).
   function tieneContenido(canvas){
